@@ -1,0 +1,60 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2023-02-16 10:52:29.123909",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "woocommerce_url",
+  "api_key",
+  "api_secret",
+  "verify_ssl",
+  "price_list"
+ ],
+ "fields": [
+  {
+   "fieldname": "woocommerce_url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Woocommerce Url"
+  },
+  {
+   "fieldname": "api_key",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Api Key"
+  },
+  {
+   "fieldname": "api_secret",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Api Secret"
+  },
+  {
+   "default": "0",
+   "fieldname": "verify_ssl",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Verify Ssl"
+  },
+  {
+   "fieldname": "price_list",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Price List",
+   "options": "Price List"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2023-02-16 10:52:29.123909",
+ "modified_by": "Administrator",
+ "module": "WooCommerceConnector",
+ "name": "Woocommerce Store Settings",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC"
+}

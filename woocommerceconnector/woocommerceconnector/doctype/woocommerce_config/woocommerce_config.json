@@ -1,4 +1,5 @@
 {
+ "actions": [],
  "creation": "2015-05-18 05:21:07.270859",
  "doctype": "DocType",
  "document_type": "System",
@@ -12,6 +13,8 @@
   "column_break_4",
   "last_sync_datetime",
   "section_break_2",
+  "woocommerce_store_settings",
+  "section_break_jortl",
   "woocommerce_url",
   "column_break_3",
   "api_key",
@@ -400,10 +403,21 @@
    "fieldname": "sync_only_published",
    "fieldtype": "Check",
    "label": "Only sync published items"
+  },
+  {
+   "fieldname": "section_break_jortl",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "woocommerce_store_settings",
+   "fieldtype": "Table",
+   "label": "WooCommerce Store Settings",
+   "options": "Woocommerce Store Settings"
   }
  ],
  "issingle": 1,
- "modified": "2022-03-18 20:36:00.328416",
+ "links": [],
+ "modified": "2023-02-16 10:53:20.152767",
  "modified_by": "Administrator",
  "module": "WooCommerceConnector",
  "name": "WooCommerce Config",
