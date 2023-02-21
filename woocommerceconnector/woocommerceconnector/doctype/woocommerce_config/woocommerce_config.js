@@ -4,6 +4,8 @@
 frappe.provide("woocommerceconnector.woocommerce_config");
 
 frappe.ui.form.on("WooCommerce Config", {
+  
+
     onload: function(frm, dt, dn){
         frappe.call({
             method:"woocommerceconnector.woocommerceconnector.doctype.woocommerce_config.woocommerce_config.get_series",
@@ -82,7 +84,50 @@ frappe.ui.form.on("WooCommerce Config", {
             frm.toggle_reqd("sales_invoice_series", frm.doc.sync_sales_invoice);
             frm.toggle_reqd("delivery_note_series", frm.doc.sync_delivery_note);
             
-
+    
+            
+            
+            frm.add_custom_button(__('Sync WooCommerce store'), function() {
+                let stores = [];
+                frm.doc.woocommerce_store_settings.forEach(element => {
+                    stores.push( element.woocommerce_url);
+                    
+                });
+    
+                let d = new frappe.ui.Dialog({
+                    title: 'Enter details',
+                    fields: [
+                        {
+                            fieldtype: 'Select',
+                            fieldname: 'store',
+                            label: 'Select Store',
+                            options: stores
+                        }
+                    ],
+                    primary_action_label: 'Submit',
+                    primary_action(values) {
+                        console.log(values);
+                      frappe.call({
+                        method:"woocommerceconnector.api.get_store_settings",
+                        args: {
+                            store_name: values.store
+                        },
+                        callback: function(r) {
+                            console.log(r.message[0])
+                            frappe.call({
+                                method:"woocommerceconnector.api.sync_woocommerce",
+                                args: {
+                                    store: r.message[0].woocommerce_url                             } 
+                             })
+                        }
+                      })
+                        d.hide();
+                    }
+                });
+                
+                d.show();
+             
+                }).addClass("btn-primary");    
             frm.add_custom_button(__('Sync WooCommerce'), function() {
                 frappe.call({
                     method:"woocommerceconnector.api.sync_woocommerce",

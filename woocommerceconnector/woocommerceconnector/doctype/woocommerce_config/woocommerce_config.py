@@ -13,26 +13,43 @@ from woocommerceconnector.exceptions import woocommerceSetupError
 class WooCommerceConfig(Document):
     def validate(self):
         if self.enable_woocommerce == 1:
-            self.validate_access_credentials()
-            self.validate_access()
-
-    def validate_access_credentials(self):
-        if not (self.get_password(fieldname='api_secret', raise_exception=False) and self.api_key and self.woocommerce_url):
-            frappe.msgprint(_("Missing value for Consumer Key, Consumer Secret, or woocommerce URL"), raise_exception=woocommerceSetupError)
+            # self.validate_access_credentials()
+            self.check_stores_settings()
+            # self.validate_access()
 
 
-    def validate_access(self):
-        try:
-            r = get_request('settings', {"api_key": self.api_key,
-                "api_secret": self.get_password(fieldname='api_secret',raise_exception=False), "woocommerce_url": self.woocommerce_url, "verify_ssl": self.verify_ssl})
+    def check_stores_settings(self):
+               pass
+        # if len(self.woocommerce_store_settings) == 0:
+        #     frappe.msgprint(_("""Please make sure you have one atleat one  woocommerce store  config"""))
+        # else:
+        #     for settings in self.woocommerce_store_settings:
+        #         if not settings.woocommerce_url:
+        #             frappe.msgprint(_("""Please make sure you have one atleat one  woocommerce store  URL If you do not have one, please create one in your woocommerce account. If you have one, please make sure it is correct."""))
+        #             break
+        #         if not settings.api_key:
+        #             frappe.msgprint(_("""Please make sure you have  API key  If you do not have one, please create one in your woocommerce account. If you have one, please make sure it is correct."""))
+        #             break
+        #         if not settings.api_secret:
+        #             frappe.msgprint(_("""Please make sure you have one atleat one  woocommerce store  API secret. If you do not have one, please create one in your woocommerce account. If you have one, please make sure it is correct."""))
+        #             break
+    # def validate_access_credentials(self):
+    #     if not (self.get_password(fieldname='api_secret', raise_exception=False) and self.api_key and self.woocommerce_url):
+    #         frappe.msgprint(_("Missing value for Consumer Key, Consumer Secret, or woocommerce URL"), raise_exception=woocommerceSetupError)
 
-        except requests.exceptions.HTTPError:
-            # disable woocommerce!
-            frappe.db.rollback()
-            self.set("enable_woocommerce", 0)
-            frappe.db.commit()
 
-            frappe.throw(_("""Error Validating API"""), woocommerceSetupError)
+    # def validate_access(self):
+    #     try:
+    #         r = get_request('settings', {"api_key": self.api_key,
+    #             "api_secret": self.get_password(fieldname='api_secret',raise_exception=False), "woocommerce_url": self.woocommerce_url, "verify_ssl": self.verify_ssl})
+
+    #     except requests.exceptions.HTTPError:
+    #         # disable woocommerce!
+    #         frappe.db.rollback()
+    #         self.set("enable_woocommerce", 0)
+    #         frappe.db.commit()
+
+    #         frappe.throw(_("""Error Validating API"""), woocommerceSetupError)
 
 
 @frappe.whitelist()

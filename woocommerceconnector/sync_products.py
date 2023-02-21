@@ -14,19 +14,20 @@ import json
 
 woocommerce_variants_attr_list = ["option1", "option2", "option3"]
 
-def sync_products(price_list, warehouse, sync_from_woocommerce=False):
+def sync_products(store_name,price_list, warehouse, sync_from_woocommerce=False):
+    print("sync_products",store_name,price_list)
     woocommerce_settings = frappe.get_doc("WooCommerce Config", "WooCommerce Config")
     woocommerce_item_list = []
     if sync_from_woocommerce:
-        sync_woocommerce_items(warehouse, woocommerce_item_list)
+        sync_woocommerce_items(warehouse, woocommerce_item_list,store_name)
     frappe.local.form_dict.count_dict["products"] = len(woocommerce_item_list)
     if woocommerce_settings.if_not_exists_create_item_to_woocommerce == 1:
-        sync_erpnext_items(price_list, warehouse, woocommerce_item_list)
+        sync_erpnext_items(price_list, warehouse, woocommerce_item_list,store_name)
     if woocommerce_settings.rewrite_stock_uom_from_wc_unit == 1:
         rewrite_stock_uom_from_wc_unit()
 
-def sync_woocommerce_items(warehouse, woocommerce_item_list):
-    for woocommerce_item in get_woocommerce_items():
+def sync_woocommerce_items(warehouse, woocommerce_item_list,store_name):
+    for woocommerce_item in get_woocommerce_items(store_name):
         try:
             make_item(warehouse, woocommerce_item, woocommerce_item_list)
 
@@ -127,7 +128,7 @@ def create_item(woocommerce_item, warehouse, has_variant=0, attributes=None, var
 def get_item_code(woocommerce_item, woocommerce_settings):
     item_code = ''
     if woocommerce_settings.item_code_based_on == 'WooCommerce ID':
-        item_code = str(woocommerce_item.get("id"))
+        item_code = str(woocommerce_item.get("sku"))
     elif woocommerce_settings.item_code_based_on == 'WooCommerce ID + Name':
         item_code = str(woocommerce_item.get("id")) + str(woocommerce_item.get("name"))
     elif woocommerce_settings.item_code_based_on == 'WooCommerce Name':
@@ -392,14 +393,14 @@ def get_item_details(woocommerce_item):
             ["name", "stock_uom", "item_name"], as_dict=1)
         return item_details
 
-def sync_erpnext_items(price_list, warehouse, woocommerce_item_list):
+def sync_erpnext_items(price_list, warehouse, woocommerce_item_list,store_name):
     woocommerce_item_list = {}
-    for item in get_woocommerce_items():
+    for item in get_woocommerce_items(store_name):
         woocommerce_item_list[int(item['id'])] = item
 
     for item in get_erpnext_items(price_list):
         try:
-            sync_item_with_woocommerce(item, price_list, warehouse, woocommerce_item_list.get(item.get('woocommerce_product_id')))
+            sync_item_with_woocommerce(item, price_list, warehouse, woocommerce_item_list.get(item.get('woocommerce_product_id')),store_name)
             frappe.local.form_dict.count_dict["products"] += 1
 
         except woocommerceError as e:
@@ -467,7 +468,7 @@ def get_erpnext_items(price_list):
     return [frappe._dict(tupleized) for tupleized in set(tuple(item.items())
         for item in erpnext_items + updated_price_item_list)]
 
-def sync_item_with_woocommerce(item, price_list, warehouse, woocommerce_item=None):
+def sync_item_with_woocommerce(item, price_list, warehouse, woocommerce_item,store_name):
     variant_item_name_list = []
     variant_list = []
     item_data = {
@@ -475,7 +476,7 @@ def sync_item_with_woocommerce(item, price_list, warehouse, woocommerce_item=Non
             "description": item.get("woocommerce_description") or item.get("web_long_description") or item.get("description"),
             "short_description": item.get("description") or item.get("web_long_description") or item.get("woocommerce_description"),
     }
-    item_data.update( get_price_and_stock_details(item, warehouse, price_list) )
+    item_data.update( get_price_and_stock_details(item, warehouse, price_list,store_name) )
 
     if item.get("has_variants"):  # we are dealing a variable product
         item_data["type"] = "variable"
@@ -496,12 +497,12 @@ def sync_item_with_woocommerce(item, price_list, warehouse, woocommerce_item=Non
     if not item.get("woocommerce_product_id"):
         item_data["status"] = "draft"
 
-        create_new_item_to_woocommerce(item, item_data, erp_item, variant_item_name_list)
+        create_new_item_to_woocommerce(item, item_data, erp_item, variant_item_name_list,store_name)
 
     else:
         item_data["id"] = item.get("woocommerce_product_id")
         try:
-            put_request("products/{0}".format(item.get("woocommerce_product_id")), item_data)
+            put_request("products/{0}".format(item.get("woocommerce_product_id")), item_data,store_name)
 
         except requests.exceptions.HTTPError as e:
             if e.args[0] and (e.args[0].startswith("404") or e.args[0].startswith("400")):
@@ -533,13 +534,15 @@ def sync_item_with_woocommerce(item, price_list, warehouse, woocommerce_item=Non
         img_details = frappe.db.get_value("File", {"file_url": erp_item.image}, ["modified"])
 
         if not item_image or datetime.datetime(item_image.date_modified, '%Y-%m-%dT%H:%M:%S') < datetime.datetime(img_details[0], '%Y-%m-%d %H:%M:%S.%f'):
-            sync_item_image(erp_item)
+            sync_item_image(erp_item,store_name)
 
     frappe.db.commit()
 
 
-def create_new_item_to_woocommerce(item, item_data, erp_item, variant_item_name_list):
-    new_item = post_request("products", item_data)
+def create_new_item_to_woocommerce(item, item_data, erp_item, variant_item_name_list,store_name):
+
+    print("create_new_item_to_woocommerce", item_data)
+    new_item = post_request("products", item_data,store_name)
 
     erp_item.woocommerce_product_id = new_item.get("id")
 
@@ -549,7 +552,7 @@ def create_new_item_to_woocommerce(item, item_data, erp_item, variant_item_name_
     erp_item.save()
     #update_variant_item(new_item, variant_item_name_list)
 
-def sync_item_image(item):
+def sync_item_image(item,store_name=None):
     image_info = {
         "images": [{}]
     }
@@ -560,7 +563,7 @@ def sync_item_image(item):
         image_info["images"][0]["src"] = 'https://' + cstr(frappe.local.site) + img_details[1]
         image_info["images"][0]["position"] = 0
 
-        post_request("products/{0}".format(item.woocommerce_product_id), image_info)
+        post_request("products/{0}".format(item.woocommerce_product_id), image_info,store_name)
 
 
 def validate_image_url(url):
@@ -628,7 +631,7 @@ def get_variant_attributes(item, price_list, warehouse):
         })
     return variant_list, options, variant_item_name
 
-def get_price_and_stock_details(item, warehouse, price_list):
+def get_price_and_stock_details(item, warehouse, price_list,store_name):
     actual_qty = frappe.db.get_value("Bin", {"item_code":item.get("item_code"), "warehouse": warehouse}, "actual_qty")
     reserved_qty = frappe.db.get_value("Bin", {"item_code":item.get("item_code"), "warehouse": warehouse}, "reserved_qty")
     qty = (actual_qty or 0) - (reserved_qty or 0)

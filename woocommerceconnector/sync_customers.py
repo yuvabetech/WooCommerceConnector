@@ -5,13 +5,13 @@ import requests.exceptions
 from .woocommerce_requests import get_woocommerce_customers, post_request, put_request
 from .utils import make_woocommerce_log
 
-def sync_customers():
+def sync_customers(store_name):
     woocommerce_customer_list = []
-    sync_woocommerce_customers(woocommerce_customer_list)
+    sync_woocommerce_customers(store_name,woocommerce_customer_list)
     frappe.local.form_dict.count_dict["customers"] = len(woocommerce_customer_list)
 
-def sync_woocommerce_customers(woocommerce_customer_list):
-    for woocommerce_customer in get_woocommerce_customers():
+def sync_woocommerce_customers(store_name,woocommerce_customer_list):
+    for woocommerce_customer in get_woocommerce_customers(store_name):
         # import new customer or update existing customer
         if not frappe.db.get_value("Customer", {"woocommerce_customer_id": woocommerce_customer.get('id')}, "name"):
             #only synch customers with address

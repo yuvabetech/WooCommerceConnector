@@ -11,10 +11,10 @@ import requests.exceptions
 import base64, requests, datetime, os
 
 
-def sync_orders():
-    sync_woocommerce_orders()
+def sync_orders(store_name):
+    sync_woocommerce_orders(store_name)
 
-def sync_woocommerce_orders():
+def sync_woocommerce_orders(store_name):
     frappe.local.form_dict.count_dict["orders"] = 0
     woocommerce_settings = frappe.get_doc("WooCommerce Config", "WooCommerce Config")
     woocommerce_order_status_for_import = get_woocommerce_order_status_for_import()
@@ -22,10 +22,10 @@ def sync_woocommerce_orders():
         woocommerce_order_status_for_import = ['processing']
         
     for woocommerce_order_status in woocommerce_order_status_for_import:
-        for woocommerce_order in get_woocommerce_orders(woocommerce_order_status):
+        for woocommerce_order in get_woocommerce_orders(woocommerce_order_status,store_name):
             so = frappe.db.get_value("Sales Order", {"woocommerce_order_id": woocommerce_order.get("id")}, "name")
             if not so:
-                if valid_customer_and_product(woocommerce_order):
+                if valid_customer_and_product(woocommerce_order,store_name):
                     try:
                         create_order(woocommerce_order, woocommerce_settings)
                         frappe.local.form_dict.count_dict["orders"] += 1
@@ -40,7 +40,7 @@ def sync_woocommerce_orders():
                             make_woocommerce_log(title=e.message, status="Error", method="sync_woocommerce_orders", message=frappe.get_traceback(),
                                 request_data=woocommerce_order, exception=True)
             # close this order as synced
-            close_synced_woocommerce_order(woocommerce_order.get("id"))
+            close_synced_woocommerce_order(woocommerce_order.get("id"),store_name)
                 
 def get_woocommerce_order_status_for_import():
     status_list = []
@@ -49,34 +49,34 @@ def get_woocommerce_order_status_for_import():
         status_list.append(status.status)
     return status_list
 
-def valid_customer_and_product(woocommerce_order):
+def valid_customer_and_product(woocommerce_order,store_name):
     if woocommerce_order.get("status").lower() == "cancelled":
         return False
     warehouse = frappe.get_doc("WooCommerce Config", "WooCommerce Config").warehouse
 	
 	# old function item based on sku
-    # for item in woocommerce_order.get("line_items"):
-        # if item.get("sku"):
-            # if not frappe.db.get_value("Item", {"barcode": item.get("sku")}, "item_code"):
-                # make_woocommerce_log(title="Item missing in ERPNext!", status="Error", method="valid_customer_and_product", message="Item with sku {0} is missing in ERPNext! The Order {1} will not be imported! For details of order see below".format(item.get("sku"), woocommerce_order.get("id")),
-                    # request_data=woocommerce_order, exception=True)
-                # return False
-        # else:
-            # make_woocommerce_log(title="Item barcode missing in WooCommerce!", status="Error", method="valid_customer_and_product", message="Item barcode is missing in WooCommerce! The Order {0} will not be imported! For details of order see below".format(woocommerce_order.get("id")),
-                # request_data=woocommerce_order, exception=True)
-            # return False
-			
-	# new function item based on product id
     for item in woocommerce_order.get("line_items"):
-        if item.get("product_id"):
-            if not frappe.db.get_value("Item", {"woocommerce_product_id": item.get("product_id")}, "item_code"):
-                make_woocommerce_log(title="Item missing in ERPNext!", status="Error", method="valid_customer_and_product", message="Item with id {0} is missing in ERPNext! The Order {1} will not be imported! For details of order see below".format(item.get("product_id"), woocommerce_order.get("id")),
+        if item.get("sku"):
+            if not frappe.db.get_value("Item", {"item_code": item.get("sku")}, "item_code"):
+                make_woocommerce_log(title="Item missing in ERPNext!", status="Error", method="valid_customer_and_product", message="Item with sku {0} is missing in ERPNext! The Order {1} will not be imported! For details of order see below".format(item.get("sku"), woocommerce_order.get("id")),
                     request_data=woocommerce_order, exception=True)
                 return False
         else:
-            make_woocommerce_log(title="Item id missing in WooCommerce!", status="Error", method="valid_customer_and_product", message="Item id is missing in WooCommerce! The Order {0} will not be imported! For details of order see below".format(woocommerce_order.get("product_id")),
+            make_woocommerce_log(title="Item barcode missing in WooCommerce!", status="Error", method="valid_customer_and_product", message="Item barcode is missing in WooCommerce! The Order {0} will not be imported! For details of order see below".format(woocommerce_order.get("id")),
                 request_data=woocommerce_order, exception=True)
             return False
+			
+	# new function item based on product id
+    # for item in woocommerce_order.get("line_items"):
+    #     if item.get("product_id"):
+    #         if not frappe.db.get_value("Item", {"woocommerce_product_id": item.get("product_id")}, "item_code"):
+    #             make_woocommerce_log(title="Item missing in ERPNext!", status="Error", method="valid_customer_and_product", message="Item with id {0} is missing in ERPNext! The Order {1} will not be imported! For details of order see below".format(item.get("product_id"), woocommerce_order.get("id")),
+    #                 request_data=woocommerce_order, exception=True)
+    #             return False
+    #     else:
+    #         make_woocommerce_log(title="Item id missing in WooCommerce!", status="Error", method="valid_customer_and_product", message="Item id is missing in WooCommerce! The Order {0} will not be imported! For details of order see below".format(woocommerce_order.get("product_id")),
+    #             request_data=woocommerce_order, exception=True)
+    #         return False
     
     try:
         customer_id = int(woocommerce_order.get("customer_id"))
@@ -85,7 +85,7 @@ def valid_customer_and_product(woocommerce_order):
         
     if customer_id > 0:
         if not frappe.db.get_value("Customer", {"woocommerce_customer_id": str(customer_id)}, "name", False,True):
-            woocommerce_customer = get_woocommerce_customer(customer_id)
+            woocommerce_customer = get_woocommerce_customer(customer_id,store_name)
 
             #Customer may not have billing and shipping address on file, pull it from the order
             if woocommerce_customer["billing"].get("address_1") == "":
@@ -429,25 +429,25 @@ def get_tax_account_head(tax):
 
     return tax_account
 
-def close_synced_woocommerce_orders():
-    for woocommerce_order in get_woocommerce_orders():
+def close_synced_woocommerce_orders(store_name):
+    for woocommerce_order in get_woocommerce_orders(store_name):
         if woocommerce_order.get("status").lower() != "cancelled":
             order_data = {
                 "status": "completed"
             }
             try:
-                put_request("orders/{0}".format(woocommerce_order.get("id")), order_data)
+                put_request("orders/{0}".format(woocommerce_order.get("id")), order_data,store_name)
                     
             except requests.exceptions.HTTPError as e:
                 make_woocommerce_log(title=e, status="Error", method="close_synced_woocommerce_orders", message=frappe.get_traceback(),
                     request_data=woocommerce_order, exception=True)
 
-def close_synced_woocommerce_order(wooid):
+def close_synced_woocommerce_order(wooid,store_name):
     order_data = {
         "status": "completed"
     }
     try:
-        put_request("orders/{0}".format(wooid), order_data)
+        put_request("orders/{0}".format(wooid), order_data,store_name)
             
     except requests.exceptions.HTTPError as e:
         make_woocommerce_log(title=e.message, status="Error", method="close_synced_woocommerce_order", message=frappe.get_traceback(),
