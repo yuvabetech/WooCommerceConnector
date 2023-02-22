@@ -2,6 +2,12 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # For license information, please see license.txt
 
+
+# t implements functions related to syncing data between ERPNext and WooCommerce.
+# The sync_woocommerce function is used to enqueue a long job for syncing WooCommerce data. The function sync_woocommerce_resources is the actual function that performs the sync process. This function first fetches the store settings for the specified store name and then validates the WooCommerce settings. It then proceeds to sync products, customers, and orders, and updates the stock quantity of items if the option is enabled. If the sync process fails, it logs the error and disables the sync until the issue is resolved.
+# The check_hourly_sync function checks if the hourly sync is enabled in the WooCommerce settings, and if so, it calls the sync_woocommerce function.
+# The get_log_status function returns the status of the last sync job performed, whether it was successful, failed, or queued.
+
 from __future__ import unicode_literals
 import frappe
 from frappe import _

@@ -14,11 +14,6 @@
   "last_sync_datetime",
   "section_break_2",
   "woocommerce_store_settings",
-  "section_break_jortl",
-  "woocommerce_url",
-  "column_break_3",
-  "api_key",
-  "api_secret",
   "webhook_address",
   "access_token",
   "erp_settings",
@@ -115,27 +110,6 @@
   {
    "fieldname": "section_break_2",
    "fieldtype": "Section Break"
-  },
-  {
-   "description": "eg: https://libracore.mywoocommerce.com",
-   "fieldname": "woocommerce_url",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Shop URL"
-  },
-  {
-   "fieldname": "column_break_3",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "api_key",
-   "fieldtype": "Data",
-   "label": "API Key"
-  },
-  {
-   "fieldname": "api_secret",
-   "fieldtype": "Password",
-   "label": "API Secret"
   },
   {
    "fieldname": "webhook_address",
@@ -404,10 +378,6 @@
    "label": "Only sync published items"
   },
   {
-   "fieldname": "section_break_jortl",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "woocommerce_store_settings",
    "fieldtype": "Table",
    "label": "WooCommerce Store Settings",
@@ -416,7 +386,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2023-02-16 11:49:54.198607",
+ "modified": "2023-02-22 11:18:54.026224",
  "modified_by": "Administrator",
  "module": "WooCommerceConnector",
  "name": "WooCommerce Config",
