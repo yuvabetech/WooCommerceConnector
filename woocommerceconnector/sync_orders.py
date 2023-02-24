@@ -24,6 +24,7 @@ def sync_woocommerce_orders(store_name):
     for woocommerce_order_status in woocommerce_order_status_for_import:
         for woocommerce_order in get_woocommerce_orders(woocommerce_order_status,store_name):
             so = frappe.db.get_value("Sales Order", {"woocommerce_order_id": woocommerce_order.get("id")}, "name")
+            
             if not so:
                 if valid_customer_and_product(woocommerce_order,store_name):
                     try:
@@ -68,9 +69,10 @@ def valid_customer_and_product(woocommerce_order,store_name):
 			
 	# new function item based on product id
     # for item in woocommerce_order.get("line_items"):
-    #     if item.get("product_id"):
-    #         if not frappe.db.get_value("Item", {"woocommerce_product_id": item.get("product_id")}, "item_code"):
-    #             make_woocommerce_log(title="Item missing in ERPNext!", status="Error", method="valid_customer_and_product", message="Item with id {0} is missing in ERPNext! The Order {1} will not be imported! For details of order see below".format(item.get("product_id"), woocommerce_order.get("id")),
+    #     wo_item = frappe.db.get_value("Item", {"woocommerce_product_id": item.get("product_id")}, "item_code")
+    #     if item.get("sku"):
+    #         if not frappe.db.sql("""SELECT `item_code` FROM `tabItem` WHERE `stock_keeping_unit` = %s""", item.get("sku")):
+    #             make_woocommerce_log(title="Item missing in ERPNext!", status="Error", method="valid_customer_and_product", message="Item with id {0} ,SKU {2} is missing in ERPNext! The Order {1} will not be imported! For details of order see below".format(item.get("product_id"), woocommerce_order.get("id"),item.get("sku")),
     #                 request_data=woocommerce_order, exception=True)
     #             return False
     #     else:
@@ -161,6 +163,7 @@ def get_country_name(code):
 
 
 def create_order(woocommerce_order, woocommerce_settings, company=None):
+    print("********************************************")
     so = create_sales_order(woocommerce_order, woocommerce_settings, company)
     # check if sales invoice should be created
     if cint(woocommerce_settings.sync_sales_invoice) == 1:
@@ -343,7 +346,7 @@ def get_item_code(woocommerce_item):
         item_code = frappe.db.get_value("Item", {"woocommerce_product_id": woocommerce_item.get("variation_id")}, "item_code")
     else:
         # single
-        item_code = frappe.db.get_value("Item", {"woocommerce_product_id": woocommerce_item.get("product_id")}, "item_code")
+        item_code = frappe.db.get_value("Item", {"stock_keeping_unit": woocommerce_item.get("sku")}, "item_code")
 
     return item_code
 
