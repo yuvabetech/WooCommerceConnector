@@ -134,11 +134,11 @@ frappe.ui.form.on("WooCommerce Config", {
             //     })
             // }).addClass("btn-primary");
             
-            frm.add_custom_button(__("Sync WooCommerce IDs to ERP"), function(){
-                frappe.call({
-                    method:"woocommerceconnector.api.sync_woocommerce_ids",
-                })
-            })
+            // frm.add_custom_button(__("Sync WooCommerce IDs to ERP"), function(){
+            //     frappe.call({
+            //         method:"woocommerceconnector.api.sync_woocommerce_ids",
+            //     })
+            // })
         }
 
         // add buttons

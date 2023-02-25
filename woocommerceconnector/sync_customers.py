@@ -26,9 +26,52 @@ def sync_woocommerce_customers(store_name,woocommerce_customer_list):
 def update_customer(woocommerce_customer):
     return
 
+# # def create_customer(woocommerce_customer, woocommerce_customer_list):
+#     import frappe.utils.nestedset
+
+#     woocommerce_settings = frappe.get_doc("WooCommerce Config", "WooCommerce Config")
+    
+#     cust_name = (woocommerce_customer.get("first_name") + " " + (woocommerce_customer.get("last_name") \
+#         and  woocommerce_customer.get("last_name") or "")) if woocommerce_customer.get("first_name")\
+#         else woocommerce_customer.get("email")
+        
+#     try:
+#         # try to match territory
+#         country_name = get_country_name(woocommerce_customer["billing"]["country"])
+#         if frappe.db.exists("Territory", country_name):
+#             territory = country_name
+#         else:
+#             territory = frappe.utils.nestedset.get_root_of("Territory")
+#         customer = frappe.get_doc({
+#             "doctype": "Customer",
+#             "name": woocommerce_customer.get("id"),
+#             "customer_name" : cust_name,
+#             "woocommerce_customer_id": woocommerce_customer.get("id"),
+#             "sync_with_woocommerce": 0,
+#             "customer_group": woocommerce_settings.customer_group,
+#             "territory": territory,
+#             "customer_type": _("Individual")
+#         })
+#         customer.flags.ignore_mandatory = True
+#         customer.insert()
+        
+#         if customer:
+#             create_customer_address(customer, woocommerce_customer)
+#             create_customer_contact(customer, woocommerce_customer)
+    
+#         woocommerce_customer_list.append(woocommerce_customer.get("id"))
+#         frappe.db.commit()
+#         make_woocommerce_log(title="create customer", status="Success", method="create_customer",
+#             message= "create customer",request_data=woocommerce_customer, exception=False)
+            
+#     except Exception as e:
+#         if e.args[0] and e.args[0].startswith("402"):
+#             raise e
+#         else:
+#             make_woocommerce_log(title=e, status="Error", method="create_customer", message=frappe.get_traceback(),
+#                 request_data=woocommerce_customer, exception=True)
 def create_customer(woocommerce_customer, woocommerce_customer_list):
     import frappe.utils.nestedset
-
     woocommerce_settings = frappe.get_doc("WooCommerce Config", "WooCommerce Config")
     
     cust_name = (woocommerce_customer.get("first_name") + " " + (woocommerce_customer.get("last_name") \
@@ -38,6 +81,10 @@ def create_customer(woocommerce_customer, woocommerce_customer_list):
     try:
         # try to match territory
         country_name = get_country_name(woocommerce_customer["billing"]["country"])
+        if country_name == "India":
+            customer_group = "B2C-India"
+        else:
+            customer_group = "B2C-International"
         if frappe.db.exists("Territory", country_name):
             territory = country_name
         else:
@@ -48,7 +95,7 @@ def create_customer(woocommerce_customer, woocommerce_customer_list):
             "customer_name" : cust_name,
             "woocommerce_customer_id": woocommerce_customer.get("id"),
             "sync_with_woocommerce": 0,
-            "customer_group": woocommerce_settings.customer_group,
+            "customer_group": customer_group,
             "territory": territory,
             "customer_type": _("Individual")
         })

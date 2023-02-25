@@ -24,24 +24,40 @@ def sync_woocommerce_orders(store_name):
     for woocommerce_order_status in woocommerce_order_status_for_import:
         for woocommerce_order in get_woocommerce_orders(woocommerce_order_status,store_name):
             so = frappe.db.get_value("Sales Order", {"woocommerce_order_id": woocommerce_order.get("id")}, "name")
-            
+            is_created = False
             if not so:
                 if valid_customer_and_product(woocommerce_order,store_name):
                     try:
                         create_order(woocommerce_order, woocommerce_settings)
                         frappe.local.form_dict.count_dict["orders"] += 1
-
+                        is_created = True
                     except woocommerceError as e:
                         make_woocommerce_log(status="Error", method="sync_woocommerce_orders", message=frappe.get_traceback(),
                             request_data=woocommerce_order, exception=True)
                     except Exception as e:
-                        if e.args and e.args[0] and e.args[0].decode("utf-8").startswith("402"):
-                            raise e
+                        if (
+                            e.args
+                            and e.args[0]
+                            and e.args[0].startswith("402")
+                        ):
+                            frappe.log_error(frappe.get_traceback(), 'sync orders')
                         else:
-                            make_woocommerce_log(title=e.message, status="Error", method="sync_woocommerce_orders", message=frappe.get_traceback(),
-                                request_data=woocommerce_order, exception=True)
+                            make_woocommerce_log(
+                                title=e.message if hasattr(e, 'message') else str(e),
+                                status="Error",
+                                method="sync_woocommerce_orders",
+                                message=frappe.get_traceback(),
+                                request_data=woocommerce_order,
+                                exception=True,
+                            )
+                        # if e.args and e.args[0] and e.args[0].decode("utf-8").startswith("402"):
+                        #     raise e
+                        # else:
+                        #     make_woocommerce_log(title=e.message, status="Error", method="sync_woocommerce_orders", message=frappe.get_traceback(),
+                        #         request_data=woocommerce_order, exception=True)
             # close this order as synced
-            close_synced_woocommerce_order(woocommerce_order.get("id"),store_name)
+            if is_created:
+                close_synced_woocommerce_order(woocommerce_order.get("id"),store_name)
                 
 def get_woocommerce_order_status_for_import():
     status_list = []
@@ -207,6 +223,7 @@ def create_sales_order(woocommerce_order, woocommerce_settings, company=None):
             "customer": customer,
             "customer_group": woocommerce_settings.customer_group,  # hard code group, as this was missing since v12
             "delivery_date": nowdate(),
+            "sales_channel": "B2C",
             "company": woocommerce_settings.company,
             "selling_price_list": woocommerce_settings.price_list,
             "ignore_pricing_rule": 1,
