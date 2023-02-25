@@ -243,7 +243,8 @@ def create_sales_order(woocommerce_order, woocommerce_settings, company=None):
 
         # alle orders in ERP = submitted
         so.save(ignore_permissions=True)
-        so.submit()
+        #so.submit() // this function is disabled, because we want to have the option to cancel orders in ERP
+
         #if woocommerce_order.get("status") == "on-hold":
         #    so.save(ignore_permissions=True)
         #elif woocommerce_order.get("status") in ("cancelled", "refunded", "failed"):
