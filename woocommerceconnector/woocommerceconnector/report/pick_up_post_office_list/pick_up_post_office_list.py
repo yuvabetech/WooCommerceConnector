@@ -18,7 +18,7 @@ def execute(filters=None):
 			`tabSales Order`.`modified` AS `tarcking_updated`,
 			`tabSales Order`.`courier_partner` AS `courier_partner`,
 			`tabSales Order`.`total` AS `total`,
-			`tabSales Order`.`total_shipment_weght` AS `total_shipment_weght`,
+			`tabSales Order`.`total_shipment_weight` AS `total_shipment_weight`,
 			`tabSales Order`.`total_qty` AS `total_qty`,
 			`tabSales Order`.`shipping_status` AS `shipping_status`,
 			`tabSales Order`.`shipping_address_name` AS `shipping_address_name`,
@@ -89,7 +89,7 @@ def execute(filters=None):
 			"fieldname": "total_shipment_weght",
 			"fieldtype": "Float",
 			"width": 150
-			
+
 		
 		},
 		{
