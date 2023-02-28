@@ -12,12 +12,13 @@ def execute(filters=None):
 		"""SELECT
 			`tabSales Order`.`name` AS `sales_order`,
 			`tabSales Order`.`customer` AS `customer`,
-			`tabSales Order`.`customer_name` AS `customer_name`,
+	
 			`tabSales Order`.`delivery_date` AS `delivery_date`,
 			`tabSales Order`.`tracking_number` AS `tracking_number`,
 			`tabSales Order`.`modified` AS `tarcking_updated`,
 			`tabSales Order`.`courier_partner` AS `courier_partner`,
 			`tabSales Order`.`total` AS `total`,
+			`tabSales Order`.`total_shipment_weght` AS `total_shipment_weght`,
 			`tabSales Order`.`total_qty` AS `total_qty`,
 			`tabSales Order`.`shipping_status` AS `shipping_status`,
 			`tabSales Order`.`shipping_address_name` AS `shipping_address_name`,
@@ -50,12 +51,7 @@ def execute(filters=None):
 			"options": "Customer",
 			"width": 150
 		},
-		{
-			"label": "Customer Name",
-			"fieldname": "customer_name",
-			"fieldtype": "Data",
-			"width": 150
-		},
+
 		{
 			"label": "Delivery Date",
 			"fieldname": "delivery_date",
@@ -87,6 +83,14 @@ def execute(filters=None):
 			"fieldtype": "Currency",
 			"width": 150
 
+		},
+		{
+			"label": "Total Shipment Weight",
+			"fieldname": "total_shipment_weght",
+			"fieldtype": "Float",
+			"width": 150
+			
+		
 		},
 		{
 			"label": "Total Qty",
