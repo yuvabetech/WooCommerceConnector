@@ -6,36 +6,35 @@ import frappe
 
 def execute(filters=None):
 	columns, data = [], []
-	so = frappe.db.sql("""SELECT
+	conditions = get_condition(filters)
+	print("Conditions: {0}".format(conditions))
+	data_sql = frappe.db.sql(
+		"""SELECT
 			`tabSales Order`.`name` AS `sales_order`,
 			`tabSales Order`.`customer` AS `customer`,
-			`tabSales Order`.`customer_name` AS `customer_name` ,
+			`tabSales Order`.`customer_name` AS `customer_name`,
 			`tabSales Order`.`delivery_date` AS `delivery_date`,
 			`tabSales Order`.`tracking_number` AS `tracking_number`,
+			`tabSales Order`.`modified` AS `tarcking_updated`,
 			`tabSales Order`.`courier_partner` AS `courier_partner`,
-			`tabSales Order`.`total` as `total`,
+			`tabSales Order`.`total` AS `total`,
 			`tabSales Order`.`total_qty` AS `total_qty`,
 			`tabSales Order`.`shipping_status` AS `shipping_status`,
 			`tabSales Order`.`shipping_address_name` AS `shipping_address_name`,
-			`tabSales Order`.`shipping_address` AS `shipping_address`,
-			`tabSales Order`. `modified` as `tracking_updated`
-
+			`tabSales Order`.`shipping_address` AS `shipping_address`
 			FROM `tabSales Order`
-			WHERE `tabSales Order`.`type` = %(type)s
-			OR `tabSales Order`.`customer` = %(customer)s
-			OR  `tabSales Order`. `creation` >= %(from_date)s
-			
+			WHERE {0} """.format(conditions),
+		filters,
+	)
+	
+	if len(data_sql) == 0:
+		frappe.msgprint("No data found")
+		return [], []
+	
+	if len(data_sql) == 0:
+		frappe.msgprint("No data found")
+		return [], []
 
-		
-
-		
-			""",{
-						"customer": filters.get("customer"),
-				"type": filters.get("type"),
-				"from_date": filters.get("from_date"),
-			}, as_dict=1)
-
-	data = so
 	columns = [
 		{
 			"label": "Sales Order",
@@ -116,4 +115,17 @@ def execute(filters=None):
 		},
 	]
 
-	return columns, data
+	return columns, data_sql
+
+def get_condition(filters):
+	conditions = ""
+
+	if filters.get("from_date") and filters.get("to_date"):
+		conditions = "`tabSales Order`.`delivery_date` BETWEEN '{0}' AND '{1}'".format(filters.get("from_date"), filters.get("to_date"))
+	if filters.get("customer"):
+		conditions = "`tabSales Order`.`customer` = '{0}'".format(filters.get("customer"))
+	if filters.get("type"):
+		conditions = "`tabSales Order`.`type` = '{0}'".format(filters.get("type"))
+	if filters.get("tracking_no"):
+		conditions = "`tabSales Order`.`tracking_number` = '{0}'".format(filters.get("tracking_no"))
+	return conditions
