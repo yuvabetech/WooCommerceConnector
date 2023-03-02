@@ -12,11 +12,26 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from .exceptions import woocommerceError
-from .sync_orders import sync_orders, close_synced_woocommerce_orders
+from .sync_orders import sync_orders, close_synced_woocommerce_orders,close_synced_woocommerce_order
 from .sync_customers import sync_customers
 from .sync_products import sync_products, update_item_stock_qty
 from .utils import disable_woocommerce_sync_on_exception, make_woocommerce_log
 from frappe.utils.background_jobs import enqueue
+from .woocommerce_requests import  put_request
+import requests
+@frappe.whitelist()
+def update_wc_order(status,wc_order_id,store_name):
+    # return status,wc_order_id,store_name
+    order_data = {
+        "status": status
+    }
+    try:
+       return put_request("orders/{0}".format(wc_order_id), order_data,store_name)
+            
+    except requests.exceptions.HTTPError as e:
+        make_woocommerce_log(title=e.message, status="Error", method="close_synced_woocommerce_order", message=frappe.get_traceback(),
+            request_data=woocommerce_order, exception=True)
+
 
 
 @frappe.whitelist()

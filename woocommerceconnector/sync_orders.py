@@ -28,7 +28,7 @@ def sync_woocommerce_orders(store_name):
             if not so:
                 if valid_customer_and_product(woocommerce_order,store_name):
                     try:
-                        create_order(woocommerce_order, woocommerce_settings)
+                        create_order(woocommerce_order, woocommerce_settings,store_name)
                         frappe.local.form_dict.count_dict["orders"] += 1
                         is_created = True
                     except woocommerceError as e:
@@ -58,7 +58,9 @@ def sync_woocommerce_orders(store_name):
             # close this order as synced
             if is_created:
                 close_synced_woocommerce_order(woocommerce_order.get("id"),store_name)
-                
+            if so:
+                close_synced_woocommerce_order(woocommerce_order.get("id"),store_name)
+
 def get_woocommerce_order_status_for_import():
     status_list = []
     _status_list = frappe.db.sql("""SELECT `status` FROM `tabWooCommerce SO Status`""", as_dict=True)
@@ -178,18 +180,18 @@ def get_country_name(code):
     return coutry_name
 
 
-def create_order(woocommerce_order, woocommerce_settings, company=None):
-    print("********************************************")
-    so = create_sales_order(woocommerce_order, woocommerce_settings, company)
+def create_order(woocommerce_order, woocommerce_settings,store_name, company=None):
+
+    so = create_sales_order(woocommerce_order, woocommerce_settings,store_name, company)
     # check if sales invoice should be created
     if cint(woocommerce_settings.sync_sales_invoice) == 1:
-        create_sales_invoice(woocommerce_order, woocommerce_settings, so)
+        create_sales_invoice(woocommerce_order, woocommerce_settings)
 
     #Fix this -- add shipping stuff
     #if woocommerce_order.get("fulfillments") and cint(woocommerce_settings.sync_delivery_note):
         #create_delivery_note(woocommerce_order, woocommerce_settings, so)
 
-def create_sales_order(woocommerce_order, woocommerce_settings, company=None):
+def create_sales_order(woocommerce_order, woocommerce_settings,store_name, company=None):
     id = str(woocommerce_order.get("customer_id"))
     customer = frappe.get_all("Customer", filters=[["woocommerce_customer_id", "=", id]], fields=['name'])
     backup_customer = frappe.get_all("Customer", filters=[["woocommerce_customer_id", "=", "Guest of Order-ID: {0}".format(woocommerce_order.get("id"))]], fields=['name'])
@@ -224,6 +226,7 @@ def create_sales_order(woocommerce_order, woocommerce_settings, company=None):
             "customer_group": woocommerce_settings.customer_group,  # hard code group, as this was missing since v12
             "delivery_date": nowdate(),
             "sales_channel": "B2C",
+            "wc_store":store_name,
             "company": woocommerce_settings.company,
             "selling_price_list": woocommerce_settings.price_list,
             "ignore_pricing_rule": 1,
@@ -473,3 +476,4 @@ def close_synced_woocommerce_order(wooid,store_name):
     except requests.exceptions.HTTPError as e:
         make_woocommerce_log(title=e.message, status="Error", method="close_synced_woocommerce_order", message=frappe.get_traceback(),
             request_data=woocommerce_order, exception=True)
+

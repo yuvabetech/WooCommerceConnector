@@ -123,7 +123,8 @@ def execute(filters=None):
 
 def get_condition(filters):
 	conditions = ""
-
+	if filters.get("sales_order"):
+		conditions = "`tabSales Order`.`name` = '{0}'".format(filters.get("sales_order"))
 	if filters.get("from_date") and filters.get("to_date"):
 		conditions = "`tabSales Order`.`delivery_date` BETWEEN '{0}' AND '{1}'".format(filters.get("from_date"), filters.get("to_date"))
 	if filters.get("customer"):
