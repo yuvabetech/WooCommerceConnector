@@ -4,6 +4,7 @@
 
 frappe.query_reports["Pick up post office list"] = {
 	"filters": [
+	
 
 		{
 			"fieldname":"from_date",
@@ -18,12 +19,19 @@ frappe.query_reports["Pick up post office list"] = {
 			"default": frappe.datetime.add_days(frappe.datetime.get_today(), -1)
 		}
 		,
-
 		{
-			"fieldname":"customer",
-			"label": __("Customer"),
-			"fieldtype": "Link",
-			"options": "Customer"
+			"fieldname":"shipping_status",
+			"label": __("Shipping Status"),
+			"fieldtype": "Select",
+			"options": [
+			
+				{"label": "Yet to Confirm", "value": "Yet to Confirm"},
+				{"label": "Awaiting Payment", "value": "Awaiting Payment"},
+				{"label": "Payment Received", "value": "Payment Received"},
+				{"label": "Shipped", "value": "Shipped"},
+				{"label": "Delivered", "value": "Delivered"}
+
+			]
 		},
 		{
 			"fieldname":"type",
@@ -35,6 +43,12 @@ frappe.query_reports["Pick up post office list"] = {
 				{"label": "International", "value": "International"},
 		
 			],
+		},
+		{
+			"fieldname":"customer",
+			"label": __("Customer"),
+			"fieldtype": "Link",
+			"options": "Customer"
 		}
 	]
 };

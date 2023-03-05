@@ -146,8 +146,8 @@ def execute(filters=None):
 def get_condition(filters):
     condition = ""
     if filters.get("from_date") and filters.get("to_date"):
-        if filters.get("customer"):
-            condition = "`tabSales Order`.`customer` = '{0}' AND `tabSales Order`.`delivery_date` BETWEEN '{1}' AND '{2}'".format(filters.get("customer"), filters.get("from_date"), filters.get("to_date"))
+        if filters.get("shipping_status"):
+            condition = "`tabSales Order`.`shipping_status` = '{0}' AND `tabSales Order`.`delivery_date` BETWEEN '{1}' AND '{2}'".format(filters.get("shipping_status"), filters.get("from_date"), filters.get("to_date"))
         elif filters.get("type"):
             condition = "`tabSales Order`.`type` = '{0}' AND `tabSales Order`.`delivery_date` BETWEEN '{1}' AND '{2}'".format(filters.get("type"), filters.get("from_date"), filters.get("to_date"))
            
