@@ -44,8 +44,10 @@ def get_store_settings(store_name):
 def check_hourly_sync():
     woocommerce_settings = frappe.get_doc("WooCommerce Config")
     if woocommerce_settings.hourly_sync == 1:
-        sync_woocommerce()
-
+        store =  frappe.db.sql("""select name, woocommerce_url, api_key, api_secret, verify_ssl, price_list from `tabWoocommerce Store Settings`""", as_dict=1)
+        for i in store:
+            sync_woocommerce(i.get('woocommerce_url'))
+        
 @frappe.whitelist()
 def sync_woocommerce(store=None):
     # sync_woocommerce_resources(store)
