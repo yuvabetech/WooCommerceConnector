@@ -41,7 +41,20 @@ frappe.query_reports["Pick up post office list"] = {
 				
 				{"label": "Domestic", "value": "Domestic"},
 				{"label": "International", "value": "International"},
-		
+				{"label": "Domestic Dropshipping" , "value": "Domestic Dropshipping"},
+				{"label": "Domestic Stock" , "value": "Domestic Stock"},
+				{"label": "Office Sale" , "value": "Office Sale"},
+				{"label": "Open House" , "value": "Open House"},
+				{"label": "Workshop" , "value": "Workshop"},
+				{"label": "Event" , "value": "Event"},
+				{"label": "Pad for Pad" , "value": "Pad for Pad"},
+				{"label": "Pad for Sisters" , "value": "Pad for Sisters"},
+				{"label": "Direct" , "value": "Direct"},
+				{"label": "Partner" , "value": "Partner"},
+				{"label": "Rural Subsidised" , "value": "Rural Subsidised"},
+				{"label": "Rural Cost price" , "value": "Rural Cost price"},
+				{"label": "Rural Direct" , "value": "Rural Direct"},
+				{"label": "Rural Retailers" , "value": "Rural Retailers"}
 			],
 		},
 		{
