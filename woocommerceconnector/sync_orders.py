@@ -367,7 +367,7 @@ def get_item_code(woocommerce_item):
         item_code = frappe.db.get_value("Item", {"woocommerce_product_id": woocommerce_item.get("variation_id")}, "item_code")
     else:
         # single
-        item_code = frappe.db.get_value("Item", {"stock_keeping_unit": woocommerce_item.get("sku")}, "item_code")
+        item_code = frappe.db.get_value("Item", {"name": woocommerce_item.get("sku")}, "item_code")
 
     return item_code
 
