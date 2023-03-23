@@ -457,7 +457,7 @@ def close_synced_woocommerce_orders(store_name):
     for woocommerce_order in get_woocommerce_orders(store_name):
         if woocommerce_order.get("status").lower() != "cancelled":
             order_data = {
-                "status": "completed"
+                "status": "processing"
             }
             try:
                 put_request("orders/{0}".format(woocommerce_order.get("id")), order_data,store_name)
@@ -468,7 +468,7 @@ def close_synced_woocommerce_orders(store_name):
 
 def close_synced_woocommerce_order(wooid,store_name):
     order_data = {
-        "status": "completed"
+        "status": "processing"
     }
     try:
         put_request("orders/{0}".format(wooid), order_data,store_name)
