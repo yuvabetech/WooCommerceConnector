@@ -2,7 +2,7 @@
 // For license information, please see license.txt
 /* eslint-disable */
 
-frappe.query_reports["Pick up post office list"] = {
+frappe.query_reports["Post Office Pick Up List"] = {
 	"filters": [
 	
 
@@ -17,22 +17,20 @@ frappe.query_reports["Pick up post office list"] = {
 			"label": __("To  Date"),
 			"fieldtype": "Date",
 			"default": frappe.datetime.add_days(frappe.datetime.get_today(), -1)
-		}
-		,
+		},
 		{
-			"fieldname":"shipping_status",
-			"label": __("Shipping Status"),
+			"fieldname":"sales_channel",
+			"label": __("Sales Channel"),
 			"fieldtype": "Select",
 			"options": [
-			
-				{"label": "Yet to Confirm", "value": "Yet to Confirm"},
-				{"label": "Awaiting Payment", "value": "Awaiting Payment"},
-				{"label": "Payment Received", "value": "Payment Received"},
-				{"label": "Shipped", "value": "Shipped"},
-				{"label": "Delivered", "value": "Delivered"}
-
+				
+				{"label": "B2C", "value": "B2C"},
+				{"label": "Retailers", "value": "Retailers"}
+				
 			]
-		},
+		}
+		,
+
 		{
 			"fieldname":"type",
 			"label": __("Type"),
@@ -58,10 +56,18 @@ frappe.query_reports["Pick up post office list"] = {
 			],
 		},
 		{
-			"fieldname":"customer",
-			"label": __("Customer"),
-			"fieldtype": "Link",
-			"options": "Customer"
+			"fieldname":"shipping_status",
+			"label": __("Shipping Status"),
+			"fieldtype": "Select",
+			"options": [
+			
+				{"label": "Yet to Confirm", "value": "Yet to Confirm"},
+				{"label": "Awaiting Payment", "value": "Awaiting Payment"},
+				{"label": "Payment Received", "value": "Payment Received"},
+				{"label": "Shipped", "value": "Shipped"},
+				{"label": "Delivered", "value": "Delivered"}
+
+			]
 		}
 	]
 };
