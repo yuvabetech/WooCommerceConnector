@@ -3,21 +3,86 @@
 
 import frappe
 
+def get_sales_invoice_tracking_data(date):
+    conditions = "`tabSales Invoice`.docstatus = 1 AND `tabSales Invoice`.posting_date = '{0}'".format(date)
+    query = ''
+
+    data_sql = frappe.db.sql(query, as_list=True)
+
+    # insert empty rows between partitions
+    empty_row = ['']*5
+    for i in range(1, len(data_sql), 6):
+        data_sql.insert(i, empty_row)
+
+    return data_sql
 def execute(filters=None):
     columns, data = [], []
     conditions = get_condition(filters)
     print("Conditions: {0}".format(conditions))
     data_sql = frappe.db.sql(
-    """SELECT
-       `tabSales Invoice`.`address_display` AS `address_display`,
-        `tabSales Invoice`.`posting_date` AS `posting_date`,
-       `tabSales Invoice`.`tracking_number` AS `tracking_number`,
-       `tabSales Invoice`.`total_shipment_weight` AS `total_shipment_weight`
+		"""SELECT  'Domestic air post (Domestic Parcels)',NULL, NULL, NULL, NULL
 
+    UNION ALL
+    SELECT *
+    FROM
+    (
+        SELECT
+            `tabSales Invoice`.`address_display` AS `address_display`,
+            `tabSales Invoice`.`posting_date` AS `posting_date`,
+            `tabSales Invoice`.`tracking_number` AS `tracking_number`,
+            `tabSales Invoice`.`total_shipment_weight` AS `total_shipment_weight`,
+            Null AS `rs`
         FROM `tabSales Invoice`
-        WHERE {0} AND `tabSales Invoice`.`tracking_number` IS NOT NULL AND `tabSales Invoice`.`tracking_number` != ''
-        """.format(conditions),
-    filters,
+        WHERE ({0}) AND (`sales_channel` = 'B2C' AND `type` = 'Domestic')
+        AND `tabSales Invoice`.`tracking_number` IS NOT NULL AND `tabSales Invoice`.`tracking_number` != ''
+        ORDER BY `posting_date` ASC
+        LIMIT 100 OFFSET 0
+    ) AS a
+
+    UNION ALL
+
+    SELECT  'Registered air parcel (INTERNATIONAL small parcels)',NULL, NULL, NULL, NULL
+
+    UNION ALL
+
+    SELECT *
+    FROM
+    (
+        SELECT
+            `tabSales Invoice`.`address_display` AS `address_display`,
+            `tabSales Invoice`.`posting_date` AS `posting_date`,
+            `tabSales Invoice`.`tracking_number` AS `tracking_number`,
+            `tabSales Invoice`.`total_shipment_weight` AS `total_shipment_weight`,
+            Null AS `rs`
+        FROM `tabSales Invoice`
+        WHERE ({0}) AND (`sales_channel` = 'B2C' AND `type` = 'International')
+        AND `tabSales Invoice`.`tracking_number` IS NOT NULL AND `tabSales Invoice`.`tracking_number` != ''
+        ORDER BY `posting_date` ASC
+        LIMIT 100 OFFSET 0
+    ) AS b
+
+    UNION ALL
+
+    SELECT 'Registered air parcel (INTERNATIONAL big boxes)',NULL, NULL, NULL, NULL
+
+    UNION ALL
+
+    SELECT *
+    FROM
+    (
+        SELECT
+            `tabSales Invoice`.`address_display` AS `address_display`,
+            `tabSales Invoice`.`posting_date` AS `posting_date`,
+            `tabSales Invoice`.`tracking_number` AS `tracking_number`,
+            `tabSales Invoice`.`total_shipment_weight` AS `total_shipment_weight`,
+            Null AS `rs`
+        FROM `tabSales Invoice`
+        WHERE ({0}) AND (`sales_channel` = 'Retailers' AND `type` = 'Domestic')
+        AND `tabSales Invoice`.`tracking_number` IS NOT NULL AND `tabSales Invoice`.`tracking_number` != ''
+        ORDER BY `posting_date` ASC
+        LIMIT 100 OFFSET 0
+    ) AS c""".format(conditions),
+    filters
 )
 
     # data_sql = frappe.db.sql(
@@ -32,6 +97,7 @@ def execute(filters=None):
     # )
 	
 
+        
     if not data_sql:
         frappe.msgprint("No data found")
         return [], []
@@ -75,11 +141,6 @@ def execute(filters=None):
 def get_condition(filters):
     condition = ""
     if filters.get("from_date") and filters.get("to_date"):
-        if filters.get("sales_channel"):
-            condition = "`tabSales Invoice`.`sales_channel` = '{0}' AND `tabSales Invoice`.`posting_date` BETWEEN '{1}' AND '{2}'".format(filters.get("sales_channel"), filters.get("from_date"), filters.get("to_date"))
-        elif filters.get("type"):
-            condition = "`tabSales Invoice`.`type` = '{0}' AND `tabSales Invoice`.`posting_date` BETWEEN '{1}' AND '{2}'".format(filters.get("type"), filters.get("from_date"), filters.get("to_date"))
-        else:
-            condition = "`tabSales Invoice`.`posting_date` BETWEEN '{0}' AND '{1}'".format(filters.get("from_date"), filters.get("to_date"))
+        condition = "`tabSales Invoice`.`posting_date` BETWEEN '{0}' AND '{1}'".format(filters.get("from_date"), filters.get("to_date"))
 
     return condition
