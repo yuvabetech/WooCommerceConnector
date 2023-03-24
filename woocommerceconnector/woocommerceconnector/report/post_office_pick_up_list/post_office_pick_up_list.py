@@ -2,25 +2,15 @@
 # For license information, please see license.txt
 
 import frappe
+from datetime import date
 
-def get_sales_invoice_tracking_data(date):
-    conditions = "`tabSales Invoice`.docstatus = 1 AND `tabSales Invoice`.posting_date = '{0}'".format(date)
-    query = ''
 
-    data_sql = frappe.db.sql(query, as_list=True)
 
-    # insert empty rows between partitions
-    empty_row = ['']*5
-    for i in range(1, len(data_sql), 6):
-        data_sql.insert(i, empty_row)
-
-    return data_sql
 def execute(filters=None):
     columns, data = [], []
-    conditions = get_condition(filters)
-    print("Conditions: {0}".format(conditions))
-    data_sql = frappe.db.sql(
-		"""SELECT  'Domestic air post (Domestic Parcels)',NULL, NULL, NULL, NULL
+    today = date.today()
+    conditions = "`tabSales Invoice`.docstatus = 1 AND `tabSales Invoice`.posting_date = '{0}'".format(today)
+    query = """SELECT  'Domestic air post (Domestic Parcels)',NULL, NULL, NULL, NULL
 
     UNION ALL
     SELECT *
@@ -77,13 +67,20 @@ def execute(filters=None):
             `tabSales Invoice`.`total_shipment_weight` AS `total_shipment_weight`,
             Null AS `rs`
         FROM `tabSales Invoice`
-        WHERE ({0}) AND (`sales_channel` = 'Retailers' AND `type` = 'Domestic')
+        WHERE ({0}) AND (`sales_channel` = 'Retailers' AND `type` = 'International')
         AND `tabSales Invoice`.`tracking_number` IS NOT NULL AND `tabSales Invoice`.`tracking_number` != ''
         ORDER BY `posting_date` ASC
         LIMIT 100 OFFSET 0
-    ) AS c""".format(conditions),
-    filters
-)
+    ) AS c""".format(conditions)
+
+    data_sql = frappe.db.sql(query, as_list=True)
+
+    # insert empty rows between partitions
+    # empty_row = ['']*7
+    # for i in range(1, len(data_sql), 6):
+    #     data_sql.insert(i, empty_row)
+
+ 
 
     # data_sql = frappe.db.sql(
     #     """SELECT
