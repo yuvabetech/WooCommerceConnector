@@ -40,12 +40,14 @@ def create_customer(woocommerce_customer, woocommerce_customer_list):
         country_name = get_country_name(woocommerce_customer["billing"]["country"])
         if country_name == "India":
             customer_group = "B2C-India"
+            territory = "India"
         else:
             customer_group = "B2C-International"
-        if frappe.db.exists("Territory", country_name):
-            territory = country_name
-        else:
-            territory = frappe.utils.nestedset.get_root_of("Territory")
+            territory = "International"
+        # if frappe.db.exists("Territory", country_name):
+        #     territory = country_name
+        # else:
+        #     territory = frappe.utils.nestedset.get_root_of("Territory")
         customer = frappe.get_doc({
             "doctype": "Customer",
             "name": woocommerce_customer.get("id"),
@@ -82,7 +84,7 @@ def create_customer_address(customer, woocommerce_customer):
     if billing_address:
         country = get_country_name(billing_address.get("country"))
         if not frappe.db.exists("Country", country):
-            country = "Switzerland"
+            country = "United States"
         
         try :
             frappe.get_doc({
@@ -111,7 +113,15 @@ def create_customer_address(customer, woocommerce_customer):
     if shipping_address:
         country = get_country_name(shipping_address.get("country"))
         if not frappe.db.exists("Country", country):
-            country = "Switzerland"
+           
+            shipping_address["address_1"] = billing_address["address_1"]
+            shipping_address["address_2"] = billing_address["address_2"]
+            shipping_address["city"] = billing_address["city"]
+            shipping_address["state"] = billing_address["state"]
+            shipping_address["postcode"] = billing_address["postcode"]
+            shipping_address["country"] = billing_address["country"]
+            shipping_address["phone"] = billing_address["phone"]
+            shipping_address["email"] = billing_address["email"]
         try :
             frappe.get_doc({
                 "doctype": "Address",
@@ -123,7 +133,7 @@ def create_customer_address(customer, woocommerce_customer):
                 "city": shipping_address.get("city") or "City",
                 "state": shipping_address.get("state"),
                 "pincode": shipping_address.get("postcode"),
-                "country": country,
+                "country": get_country_name(shipping_address.get("country")),
                 "phone": shipping_address.get("phone"),
                 "email_id": shipping_address.get("email"),
                 "links": [{
@@ -135,6 +145,10 @@ def create_customer_address(customer, woocommerce_customer):
         except Exception as e:
             make_woocommerce_log(title=e, status="Error", method="create_customer_address", message=frappe.get_traceback(),
                 request_data=woocommerce_customer, exception=True)
+    else:
+        shipping_address = billing_address
+
+
 
 # TODO: email and phone into child table
 def create_customer_contact(customer, woocommerce_customer):

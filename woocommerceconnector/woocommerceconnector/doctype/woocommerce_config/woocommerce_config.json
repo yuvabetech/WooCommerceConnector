@@ -24,8 +24,6 @@
   "sync_item_qty_from_erpnext_to_woocommerce",
   "default_item_group",
   "column_break_8",
-  "default_customer",
-  "customer_group",
   "item_code_based_on",
   "item_code_naming_series",
   "company_dependent_settings",
@@ -156,20 +154,6 @@
   {
    "fieldname": "column_break_8",
    "fieldtype": "Column Break"
-  },
-  {
-   "description": "If woocommerce not contains a customer in Order, then while syncing Orders, the system will consider default customer for order",
-   "fieldname": "default_customer",
-   "fieldtype": "Link",
-   "label": "Default Customer",
-   "options": "Customer"
-  },
-  {
-   "description": "Customer Group will set to selected group while syncing customers from woocommerce",
-   "fieldname": "customer_group",
-   "fieldtype": "Link",
-   "label": "Customer Group",
-   "options": "Customer Group"
   },
   {
    "fieldname": "company_dependent_settings",
@@ -386,7 +370,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2023-02-22 11:18:54.026224",
+ "modified": "2023-03-31 15:26:16.700771",
  "modified_by": "Administrator",
  "module": "WooCommerceConnector",
  "name": "WooCommerce Config",

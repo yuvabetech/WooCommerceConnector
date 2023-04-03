@@ -113,8 +113,8 @@ def valid_customer_and_product(woocommerce_order,store_name):
                 woocommerce_customer["billing"]["country"] = get_country_from_code( woocommerce_customer.get("billing").get("country") )
 
                 if woocommerce_customer["shipping"].get("address_1") == "":
-                    woocommerce_customer["shipping"] = woocommerce_order["shipping"]
-                    woocommerce_customer["shipping"]["country"] = get_country_from_code( woocommerce_customer.get("shipping").get("country") )
+                    woocommerce_customer["shipping"] = woocommerce_order["billing"]
+                    woocommerce_customer["shipping"]["country"] = get_country_from_code( woocommerce_customer.get("billing").get("country") )
             
             create_customer(woocommerce_customer, woocommerce_customer_list=[])
 
@@ -141,6 +141,16 @@ def create_new_customer_of_guest(woocommerce_order):
     
     cust_id = "Guest of Order-ID: {0}".format(woocommerce_order.get("id"))
     cust_info = woocommerce_order.get("billing")
+    
+
+    if cust_info["country"] == 'IN':
+        customer_group = 'B2C-India'
+        territory = 'India'
+    else:
+        customer_group = 'B2C-International'
+        territory = 'International'
+
+
         
     try:
         customer = frappe.get_doc({
@@ -149,8 +159,8 @@ def create_new_customer_of_guest(woocommerce_order):
             "customer_name" : "{0} {1}".format(cust_info["first_name"], cust_info["last_name"]),
             "woocommerce_customer_id": cust_id,
             "sync_with_woocommerce": 0,
-            "customer_group": woocommerce_settings.customer_group,
-            "territory": frappe.utils.nestedset.get_root_of("Territory"),
+            "customer_group": customer_group,
+            "territory": territory,
             "customer_type": _("Individual")
         })
         customer.flags.ignore_mandatory = True
@@ -207,7 +217,8 @@ def create_sales_order(woocommerce_order, woocommerce_settings,store_name, compa
         # get shipping/billing address
         shipping_address = get_customer_address_from_order('Shipping', woocommerce_order, customer)
         billing_address = get_customer_address_from_order('Billing', woocommerce_order, customer)
-
+        if not shipping_address:
+            shipping_address = billing_address
         # get applicable tax rule from configuration
         tax_rules = frappe.get_all("WooCommerce Tax Rule", filters={'currency': woocommerce_order.get("currency")}, fields=['tax_rule'])
         if not tax_rules:
@@ -223,18 +234,18 @@ def create_sales_order(woocommerce_order, woocommerce_settings,store_name, compa
             "woocommerce_order_id": woocommerce_order.get("id"),
             "woocommerce_payment_method": woocommerce_order.get("payment_method_title"),
             "customer": customer,
-            "customer_group": woocommerce_settings.customer_group,  # hard code group, as this was missing since v12
+            # "customer_group": woocommerce_settings.customer_group,  # hard code group, as this was missing since v12
             "delivery_date": nowdate(),
             "sales_channel": "B2C",
             "wc_store":store_name,
             "company": woocommerce_settings.company,
-            "selling_price_list": woocommerce_settings.price_list,
+            # "selling_price_list": woocommerce_settings.price_list,
             "ignore_pricing_rule": 1,
             "items": get_order_items(woocommerce_order.get("line_items"), woocommerce_settings),
             "taxes": get_order_taxes(woocommerce_order, woocommerce_settings),
             # disabled discount as WooCommerce will send this both in the item rate and as discount
-            #"apply_discount_on": "Net Total",
-            #"discount_amount": flt(woocommerce_order.get("discount_total") or 0),
+            "apply_discount_on": "Net Total",
+            "discount_amount": flt(woocommerce_order.get("discount_total") or 0),
             "currency": woocommerce_order.get("currency"),
             "taxes_and_charges": tax_rules,
             "customer_address": billing_address,
@@ -272,7 +283,7 @@ def get_customer_address_from_order(type, woocommerce_order, customer):
     if not address_name:
         country = get_country_name(address_record.get("country"))
         if not frappe.db.exists("Country", country):
-            country = "Switzerland"
+            country = "United States"
         try :
             address_name = frappe.get_doc({
                 "doctype": "Address",
