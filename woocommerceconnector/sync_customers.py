@@ -80,7 +80,17 @@ def create_customer(woocommerce_customer, woocommerce_customer_list):
 def create_customer_address(customer, woocommerce_customer):
     billing_address = woocommerce_customer.get("billing")
     shipping_address = woocommerce_customer.get("shipping")
-    
+    current_state = ""
+
+    doc_indian_states = frappe.get_all("Indian States", fields=["state_name","code"])
+    if billing_address.get("country") == "IN":
+        for state in doc_indian_states:
+            if state["code"] == billing_address.get("state"):
+                current_state = state["state_name"]
+                break
+            else:
+                current_state = billing_address.get("state")
+
     if billing_address:
         country = get_country_name(billing_address.get("country"))
         if not frappe.db.exists("Country", country):
@@ -95,7 +105,7 @@ def create_customer_address(customer, woocommerce_customer):
                 "address_line1": billing_address.get("address_1") or "Address 1",
                 "address_line2": billing_address.get("address_2"),
                 "city": billing_address.get("city") or "City",
-                "state": billing_address.get("state"),
+                "state": current_state,
                 "pincode": billing_address.get("postcode"),
                 "country": country,
                 "phone": billing_address.get("phone"),
