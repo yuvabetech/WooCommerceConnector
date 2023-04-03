@@ -80,34 +80,28 @@ def create_customer(woocommerce_customer, woocommerce_customer_list):
 def create_customer_address(customer, woocommerce_customer):
     billing_address = woocommerce_customer.get("billing")
     shipping_address = woocommerce_customer.get("shipping")
-    current_state = ""
-
-    doc_indian_states = frappe.get_all("Indian States", fields=["state_name","code"])
-    if billing_address.get("country") == "IN":
-        for state in doc_indian_states:
-            if state["code"] == billing_address.get("state"):
-                current_state = state["state_name"]
-                break
-            else:
-                current_state = billing_address.get("state")
 
     if billing_address:
-        country = get_country_name(billing_address.get("country"))
-        if not frappe.db.exists("Country", country):
-            country = "United States"
-        
-        try :
+        country_code = billing_address.get("country")
+        country_name = get_country_name(country_code)
+        if not frappe.db.exists("Country", country_name):
+            country_name = "United States"
+        if country_name == "India":
+            state = get_in_state_name(billing_address.get("state"))
+        else:
+            state = billing_address.get("state")
+        try:
             frappe.get_doc({
                 "doctype": "Address",
                 "woocommerce_address_id": "Billing",
                 "address_title": customer.name,
                 "address_type": "Billing",
-                "address_line1": billing_address.get("address_1") or "Address 1",
+                "address_line1": billing_address.get("address_1", "Address 1"),
                 "address_line2": billing_address.get("address_2"),
-                "city": billing_address.get("city") or "City",
-                "state": current_state,
+                "city": billing_address.get("city", "City"),
+                "state": state,
                 "pincode": billing_address.get("postcode"),
-                "country": country,
+                "country": country_name,
                 "phone": billing_address.get("phone"),
                 "email_id": billing_address.get("email"),
                 "links": [{
@@ -115,49 +109,42 @@ def create_customer_address(customer, woocommerce_customer):
                     "link_name": customer.name
                 }]
             }).insert()
-
         except Exception as e:
             make_woocommerce_log(title=e, status="Error", method="create_customer_address", message=frappe.get_traceback(),
-                    request_data=woocommerce_customer, exception=True)
+                                 request_data=woocommerce_customer, exception=True)
 
     if shipping_address:
-        country = get_country_name(shipping_address.get("country"))
-        if not frappe.db.exists("Country", country):
-           
-            shipping_address["address_1"] = billing_address["address_1"]
-            shipping_address["address_2"] = billing_address["address_2"]
-            shipping_address["city"] = billing_address["city"]
-            shipping_address["state"] = billing_address["state"]
-            shipping_address["postcode"] = billing_address["postcode"]
-            shipping_address["country"] = billing_address["country"]
-            shipping_address["phone"] = billing_address["phone"]
-            shipping_address["email"] = billing_address["email"]
-        try :
+        country_code = shipping_address.get("country")
+        country_name = get_country_name(country_code)
+        if not frappe.db.exists("Country", country_name):
+            shipping_address.update(billing_address)
+            country_name = get_country_name(country_code)
+        if country_name == "India":
+            state = get_in_state_name(shipping_address.get("state"))
+        else:
+            state = shipping_address.get("state")
+        try:
             frappe.get_doc({
                 "doctype": "Address",
                 "woocommerce_address_id": "Shipping",
                 "address_title": customer.name,
                 "address_type": "Shipping",
-                "address_line1": shipping_address.get("address_1") or "Address 1",
+                "address_line1": shipping_address.get("address_1", "Address 1"),
                 "address_line2": shipping_address.get("address_2"),
-                "city": shipping_address.get("city") or "City",
-                "state": shipping_address.get("state"),
+                "city": shipping_address.get("city", "City"),
+                "state": state,
                 "pincode": shipping_address.get("postcode"),
-                "country": get_country_name(shipping_address.get("country")),
+                "country": country_name,
                 "phone": shipping_address.get("phone"),
-                "email_id": shipping_address.get("email"),
+                "email_id": shipping_address.get("email_id"),
                 "links": [{
                     "link_doctype": "Customer",
                     "link_name": customer.name
                 }]
             }).insert()
-            
         except Exception as e:
             make_woocommerce_log(title=e, status="Error", method="create_customer_address", message=frappe.get_traceback(),
-                request_data=woocommerce_customer, exception=True)
-    else:
-        shipping_address = billing_address
-
+                                 request_data=woocommerce_customer, exception=True)
 
 
 # TODO: email and phone into child table
@@ -194,7 +181,7 @@ def get_country_name(code):
 
 def get_in_state_name(code):
     state_name = ''
-    state_names = """SELECT `state_name` FROM `tabCountry` WHERE `code` = '{0}'""".format(code.lower())
+    state_names = """SELECT `state_name` FROM `tabIndian States` WHERE `code` = '{0}'""".format(code.lower())
     for _state_name in frappe.db.sql(state_names, as_dict=1):
         state_name = _state_name.state_name
     return state_name

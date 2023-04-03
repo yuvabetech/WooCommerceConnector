@@ -3,7 +3,7 @@ import frappe
 from frappe import _
 from .exceptions import woocommerceError
 from .utils import make_woocommerce_log
-from .sync_customers import create_customer, create_customer_address, create_customer_contact
+from .sync_customers import create_customer, create_customer_address, create_customer_contact,get_in_state_name
 from frappe.utils import flt, nowdate, cint
 from .woocommerce_requests import get_request, get_woocommerce_orders, get_woocommerce_tax, get_woocommerce_customer, put_request
 from erpnext.selling.doctype.sales_order.sales_order import make_delivery_note, make_sales_invoice
@@ -284,6 +284,11 @@ def get_customer_address_from_order(type, woocommerce_order, customer):
         country = get_country_name(address_record.get("country"))
         if not frappe.db.exists("Country", country):
             country = "United States"
+        
+        if country == "India":
+            state = get_in_state_name(address_record.get("state"))
+        else:
+            state = address_record.get("state")
         try :
             address_name = frappe.get_doc({
                 "doctype": "Address",
@@ -294,7 +299,7 @@ def get_customer_address_from_order(type, woocommerce_order, customer):
                 "address_line1": address_record.get("address_1") or "Address 1",
                 "address_line2": address_record.get("address_2"),
                 "city": address_record.get("city") or "City",
-                "state": address_record.get("state"),
+                "state": state,
                 "pincode": address_record.get("postcode"),
                 "country": country,
                 "phone": address_record.get("phone"),
