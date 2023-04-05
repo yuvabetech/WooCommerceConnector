@@ -145,7 +145,38 @@ def create_customer_address(customer, woocommerce_customer):
         except Exception as e:
             make_woocommerce_log(title=e, status="Error", method="create_customer_address", message=frappe.get_traceback(),
                                  request_data=woocommerce_customer, exception=True)
-
+    else:
+        country_code = billing_address.get("country")
+        country_name = get_country_name(country_code)
+        if not frappe.db.exists("Country", country_name):
+            country_name = "United States"
+        if country_name == "India":
+            state = get_in_state_name(billing_address.get("state"))
+        else:
+            state = billing_address.get("state")
+            
+        try:
+            frappe.get_doc({
+                "doctype": "Address",
+                "woocommerce_address_id": "Shipping",
+                "address_title": customer.name,
+                "address_type": "Shipping",
+                "address_line1": billing_address.get("address_1", "Address 1"),
+                "address_line2": billing_address.get("address_2"),
+                "city": billing_address.get("city", "City"),
+                "state": state,
+                "pincode": billing_address.get("postcode"),
+                "country": country_name,
+                "phone": billing_address.get("phone"),
+                "email_id": billing_address.get("email"),
+                "links": [{
+                    "link_doctype": "Customer",
+                    "link_name": customer.name
+                }]
+            }).insert()
+        except Exception as e:
+            make_woocommerce_log(title=e, status="Error", method="create_customer_address", message=frappe.get_traceback(),
+                                 request_data=woocommerce_customer, exception=True)
 
 # TODO: email and phone into child table
 def create_customer_contact(customer, woocommerce_customer):
