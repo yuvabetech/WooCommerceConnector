@@ -250,8 +250,15 @@ def create_sales_order(woocommerce_order, woocommerce_settings,store_name, compa
             "taxes_and_charges": tax_rules,
             "customer_address": billing_address,
             "shipping_address_name": shipping_address,
-            "posting_date": woocommerce_order.get("date_created")[:10]          # pull posting date from WooCommerce
+            "posting_date": woocommerce_order.get("date_created")[:10] ,         # pull posting date from WooCommerce
+
         })
+        # Add a new row to the Payment Schedule table
+        new_row = so.append("payment_schedule", {})
+        new_row.payment_amount = float(woocommerce_order.get("total"))
+        new_row.due_date = nowdate()
+
+     
 
         so.flags.ignore_mandatory = True
 

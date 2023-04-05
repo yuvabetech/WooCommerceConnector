@@ -113,7 +113,7 @@ def create_customer_address(customer, woocommerce_customer):
             make_woocommerce_log(title=e, status="Error", method="create_customer_address", message=frappe.get_traceback(),
                                  request_data=woocommerce_customer, exception=True)
 
-    if shipping_address:
+    if not shipping_address.get("country"):
         country_code = shipping_address.get("country")
         country_name = get_country_name(country_code)
         if not frappe.db.exists("Country", country_name):
@@ -134,7 +134,7 @@ def create_customer_address(customer, woocommerce_customer):
                 "city": shipping_address.get("city", "City"),
                 "state": state,
                 "pincode": shipping_address.get("postcode"),
-                "country": country_name,
+                "country": billing_address.get("country"),
                 "phone": shipping_address.get("phone"),
                 "email_id": shipping_address.get("email_id"),
                 "links": [{
@@ -154,7 +154,7 @@ def create_customer_address(customer, woocommerce_customer):
             state = get_in_state_name(billing_address.get("state"))
         else:
             state = billing_address.get("state")
-            
+
         try:
             frappe.get_doc({
                 "doctype": "Address",
