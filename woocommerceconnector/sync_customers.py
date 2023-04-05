@@ -134,7 +134,7 @@ def create_customer_address(customer, woocommerce_customer):
                 "city": shipping_address.get("city", "City"),
                 "state": state,
                 "pincode": shipping_address.get("postcode"),
-                "country": billing_address.get("country"),
+                "country": get_country_name(billing_address.get("country")),
                 "phone": shipping_address.get("phone"),
                 "email_id": shipping_address.get("email_id"),
                 "links": [{
