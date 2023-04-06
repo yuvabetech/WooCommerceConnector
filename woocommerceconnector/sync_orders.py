@@ -254,9 +254,9 @@ def create_sales_order(woocommerce_order, woocommerce_settings,store_name, compa
 
         })
         # Add a new row to the Payment Schedule table
-        new_row = so.append("payment_schedule", {})
-        new_row.payment_amount = float(woocommerce_order.get("total"))
-        new_row.due_date = nowdate()
+        # new_row = so.append("payment_schedule", {})
+        # new_row.payment_amount = float(woocommerce_order.get("total"))
+        # new_row.due_date = nowdate()
 
      
 
