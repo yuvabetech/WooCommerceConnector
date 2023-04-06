@@ -79,9 +79,11 @@ doc_events = {
 # ---------------
 
 scheduler_events = {
-	"hourly": [
-		"woocommerceconnector.api.check_hourly_sync"
-	]
+    "cron": {
+        "*/5 * * * *": [
+            "woocommerceconnector.api.check_five_minute_sync"
+        ]
+    }
 }
 
 # Testing
