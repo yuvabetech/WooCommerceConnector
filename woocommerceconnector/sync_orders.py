@@ -195,7 +195,7 @@ def create_order(woocommerce_order, woocommerce_settings,store_name, company=Non
     so = create_sales_order(woocommerce_order, woocommerce_settings,store_name, company)
     # check if sales invoice should be created
     if cint(woocommerce_settings.sync_sales_invoice) == 1:
-        create_sales_invoice(woocommerce_order, woocommerce_settings)
+        create_sales_invoice(woocommerce_order, woocommerce_settings,so)
 
     #Fix this -- add shipping stuff
     #if woocommerce_order.get("fulfillments") and cint(woocommerce_settings.sync_delivery_note):
