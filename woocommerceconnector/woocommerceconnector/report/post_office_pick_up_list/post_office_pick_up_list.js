@@ -19,55 +19,12 @@ frappe.query_reports["Post Office Pick Up List"] = {
 			"default": frappe.datetime.add_days(frappe.datetime.get_today(), -1)
 		},
 		{
-			"fieldname":"sales_channel",
-			"label": __("Sales Channel"),
+			"fieldname":"options",
+			"label": __("Options"),
 			"fieldtype": "Select",
-			"options": [
-				
-				{"label": "B2C", "value": "B2C"},
-				{"label": "Retailers", "value": "Retailers"}
-				
-			]
-		}
-		,
-
-		{
-			"fieldname":"type",
-			"label": __("Type"),
-			"fieldtype": "Select",
-			"options": [
-				
-				{"label": "Domestic", "value": "Domestic"},
-				{"label": "International", "value": "International"},
-				{"label": "Domestic Dropshipping" , "value": "Domestic Dropshipping"},
-				{"label": "Domestic Stock" , "value": "Domestic Stock"},
-				{"label": "Office Sale" , "value": "Office Sale"},
-				{"label": "Open House" , "value": "Open House"},
-				{"label": "Workshop" , "value": "Workshop"},
-				{"label": "Event" , "value": "Event"},
-				{"label": "Pad for Pad" , "value": "Pad for Pad"},
-				{"label": "Pad for Sisters" , "value": "Pad for Sisters"},
-				{"label": "Direct" , "value": "Direct"},
-				{"label": "Partner" , "value": "Partner"},
-				{"label": "Rural Subsidised" , "value": "Rural Subsidised"},
-				{"label": "Rural Cost price" , "value": "Rural Cost price"},
-				{"label": "Rural Direct" , "value": "Rural Direct"},
-				{"label": "Rural Retailers" , "value": "Rural Retailers"}
-			],
+			"options": "With Tracking\nWithout Tracking",
+			"default": "All"
 		},
-		{
-			"fieldname":"shipping_status",
-			"label": __("Shipping Status"),
-			"fieldtype": "Select",
-			"options": [
-			
-				{"label": "Yet to Confirm", "value": "Yet to Confirm"},
-				{"label": "Awaiting Payment", "value": "Awaiting Payment"},
-				{"label": "Payment Received", "value": "Payment Received"},
-				{"label": "Shipped", "value": "Shipped"},
-				{"label": "Delivered", "value": "Delivered"}
-
-			]
-		}
+		
 	]
 };
