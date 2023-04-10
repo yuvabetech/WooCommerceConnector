@@ -22,8 +22,13 @@ frappe.query_reports["Post Office Pick Up List"] = {
 			"fieldname":"options",
 			"label": __("Options"),
 			"fieldtype": "Select",
-			"options": "With Tracking\nWithout Tracking",
-			"default": "All"
+	
+			"options": [
+				
+				{"label": "Tracking", "value": "Tracking"},
+				{"label": "Without Tracking", "value": "Without Tracking"}
+				
+			]
 		},
 		
 	]

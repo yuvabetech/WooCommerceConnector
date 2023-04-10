@@ -81,7 +81,8 @@ def execute(filters=None):
             `tabSales Invoice`.`tracking_number` AS `tracking_number`,
             `tabSales Invoice`.`total_shipment_weight` AS `total_shipment_weight`
         FROM `tabSales Invoice`
-        WHERE {0} AND `tabSales Invoice`.`sales_channel` = 'Retailers' AND `tabSales Invoice`.`type` = 'International'
+        WHERE {0}
+        AND `tabSales Invoice`.`sales_channel` = 'Retailers' AND `tabSales Invoice`.`type` = 'International'
         LIMIT 100 OFFSET 0
     """.format(conditions)
 
