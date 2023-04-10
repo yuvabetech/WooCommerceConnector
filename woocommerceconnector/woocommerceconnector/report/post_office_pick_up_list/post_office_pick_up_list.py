@@ -5,7 +5,7 @@ def execute(filters=None):
     columns = [
         {
             "label": "Address Name",
-            "fieldname": "address_name",
+            "fieldname": "customer_address",
             "fieldtype": "Data",
             "width": 150
         },
@@ -49,7 +49,7 @@ def execute(filters=None):
 
     query = """
         SELECT
-            `tabSales Invoice`.`address_name` AS `address_name`,
+            `tabSales Invoice`.`customer_address` AS `customer_address`,
             `tabSales Invoice`.`address_display` AS `address_display`,
             `tabSales Invoice`.`posting_date` AS `posting_date`,
             `tabSales Invoice`.`tracking_number` AS `tracking_number`,
@@ -62,7 +62,7 @@ def execute(filters=None):
         UNION ALL
 
         SELECT
-            `tabSales Invoice`.`address_name` AS `address_name`,
+            `tabSales Invoice`.`customer_address` AS `customer_address`,
             `tabSales Invoice`.`address_display` AS `address_display`,
             `tabSales Invoice`.`posting_date` AS `posting_date`,
             `tabSales Invoice`.`tracking_number` AS `tracking_number`,
@@ -75,7 +75,7 @@ def execute(filters=None):
         UNION ALL
 
         SELECT
-            `tabSales Invoice`.`address_name` AS `address_name`,
+            `tabSales Invoice`.`customer_address` AS `customer_address`,
             `tabSales Invoice`.`address_display` AS `address_display`,
             `tabSales Invoice`.`posting_date` AS `posting_date`,
             `tabSales Invoice`.`tracking_number` AS `tracking_number`,
