@@ -228,6 +228,16 @@ def create_sales_order(woocommerce_order, woocommerce_settings,store_name, compa
             tax_rules = tax_rules[0]['tax_rule']
         else:
             tax_rules = ""
+
+
+        billing = woocommerce_order.get("billing")
+        if billing['country'] == 'IN' and billing['state'] == 'Tamil Nadu':
+            tax_cat = 'Wc Local'
+            tax_rules = 'WooCommerce GST - EF'
+        else:
+            tax_cat = 'Wc Out-State'
+            tax_rules = 'WooCommerce IGST - EF'
+
         so = frappe.get_doc({
             "doctype": "Sales Order",
             "naming_series": woocommerce_settings.sales_order_series or "SO-woocommerce-",
@@ -239,20 +249,24 @@ def create_sales_order(woocommerce_order, woocommerce_settings,store_name, compa
             "sales_channel": "B2C",
             "wc_store":store_name,
             "company": woocommerce_settings.company,
+            "tax_category": tax_cat,
             # "selling_price_list": woocommerce_settings.price_list,
             "ignore_pricing_rule": 1,
             "items": get_order_items(woocommerce_order.get("line_items"), woocommerce_settings),
-            "taxes": get_order_taxes(woocommerce_order, woocommerce_settings),
+            "taxes": get_order_taxes(woocommerce_order, woocommerce_settings,store_name),
             # disabled discount as WooCommerce will send this both in the item rate and as discount
             "apply_discount_on": "Net Total",
             "discount_amount": flt(woocommerce_order.get("discount_total") or 0),
             "currency": woocommerce_order.get("currency"),
+
             "taxes_and_charges": tax_rules,
             "customer_address": billing_address,
             "shipping_address_name": shipping_address,
             "posting_date": woocommerce_order.get("date_created")[:10] ,         # pull posting date from WooCommerce
 
         })
+        so.flags.ignore_mandatory = True
+      
         # Add a new row to the Payment Schedule table
         # new_row = so.append("payment_schedule", {})
         # new_row.payment_amount = float(woocommerce_order.get("total"))
@@ -260,21 +274,21 @@ def create_sales_order(woocommerce_order, woocommerce_settings,store_name, compa
 
      
 
-        so.flags.ignore_mandatory = True
+      
 
         # alle orders in ERP = submitted
         so.save(ignore_permissions=True)
         so.submit() #// this function is disabled, because we want to have the option to cancel orders in ERP
 
-        if woocommerce_order.get("status") == "on-hold":
-           so.save(ignore_permissions=True)
-        elif woocommerce_order.get("status") in ("cancelled", "refunded", "failed"):
-           so.save(ignore_permissions=True)
-           so.submit()
-           so.cancel()
-        else:
-           so.save(ignore_permissions=True)
-           so.submit()
+        # if woocommerce_order.get("status") == "on-hold":
+        #    so.save(ignore_permissions=True)
+        # elif woocommerce_order.get("status") in ("cancelled", "refunded", "failed"):
+        #    so.save(ignore_permissions=True)
+        #    so.submit()
+        #    so.cancel()
+        # else:
+        #    so.save(ignore_permissions=True)
+        #    so.submit()
 
     else:
         so = frappe.get_doc("Sales Order", so)
@@ -330,6 +344,8 @@ def create_sales_invoice(woocommerce_order, woocommerce_settings, so):
         si = make_sales_invoice(so.name)
         si.woocommerce_order_id = woocommerce_order.get("id")
         si.naming_series = woocommerce_settings.sales_invoice_series or "SI-woocommerce-"
+        si.selling_price_list ="Woocommerce India (WC)"
+        si.type="Domestic"
         si.flags.ignore_mandatory = True
         set_cost_center(si.items, woocommerce_settings.cost_center)
         si.submit()
@@ -367,9 +383,9 @@ def get_fulfillment_items(dn_items, fulfillment_items, woocommerce_settings):
     return [dn_item.update({"qty": item.get("quantity")}) for item in fulfillment_items for dn_item in dn_items\
             if get_item_code(item) == dn_item.item_code]
     
-#def get_discounted_amount(order):
-    #discounted_amount = flt(order.get("discount_total") or 0)
-    #return discounted_amount
+def get_discounted_amount(order):
+    discounted_amount = flt(order.get("discount_total") or 0)
+    return discounted_amount
 
 def get_order_items(order_items, woocommerce_settings):
     items = []
@@ -394,11 +410,11 @@ def get_item_code(woocommerce_item):
 
     return item_code
 
-def get_order_taxes(woocommerce_order, woocommerce_settings):
+def get_order_taxes(woocommerce_order, woocommerce_settings,store_name):
     taxes = []
     for tax in woocommerce_order.get("tax_lines"):
         
-        woocommerce_tax = get_woocommerce_tax(tax.get("rate_id"))
+        woocommerce_tax = get_woocommerce_tax(tax.get("rate_id"),store_name)
         rate = woocommerce_tax.get("rate")
         name = woocommerce_tax.get("name")
         

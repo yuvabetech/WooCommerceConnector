@@ -139,6 +139,48 @@ frappe.ui.form.on("WooCommerce Config", {
             //         method:"woocommerceconnector.api.sync_woocommerce_ids",
             //     })
             // })
+
+            frm.add_custom_button(__('Sync WooCommerce Products'), function() {
+                let stores = [];
+                frm.doc.woocommerce_store_settings.forEach(element => {
+                    stores.push( element.woocommerce_url);
+                    
+                });
+    
+                let d = new frappe.ui.Dialog({
+                    title: 'Enter details',
+                    fields: [
+                        {
+                            fieldtype: 'Select',
+                            fieldname: 'store',
+                            label: 'Select Store',
+                            options: stores
+                        }
+                    ],
+                    primary_action_label: 'Submit',
+                    primary_action(values) {
+                        console.log(values);
+                      frappe.call({
+                        method:"woocommerceconnector.api.get_store_settings",
+                        args: {
+                            store_name: values.store
+                        },
+                        callback: function(r) {
+                            console.log(r.message[0])
+                            frappe.call({
+                                method:"woocommerceconnector.api.sync_woocommerce_ids",
+                                args: {
+                                    store: r.message[0].woocommerce_url                             } 
+                             })
+                        }
+                      })
+                        d.hide();
+                    }
+                });
+                
+                d.show();
+             
+                }).addClass("btn-primary");   
         }
 
         // add buttons
@@ -155,6 +197,18 @@ frappe.ui.form.on("WooCommerce Config", {
                     cur_frm.save();
                 },
                 __("Reset Last Sync Date"),
+                "OK"
+            );
+        })
+        frm.add_custom_button(__("Sync Products"), function(){
+            frappe.prompt([
+                    {"fieldtype": "Datetime", "label": __("Date"), "fieldname": "last_sync_date", "reqd": 1}  
+                ],
+                function(values){
+                    cur_frm.set_value("last_sync_datetime", values.last_sync_date);
+                    cur_frm.save();
+                },
+                __("Select Store"),
                 "OK"
             );
         })

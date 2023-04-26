@@ -2,36 +2,52 @@
 # For license information, please see license.txt
 
 import frappe
-from datetime import date
+from datetime import date,datetime
 
+def get_condition(filters):
+        conditions = ""
+        if filters.get("from_date") and filters.get("to_date"):
+            conditions += " `tabSales Invoice`.`posting_date` BETWEEN '{0}' AND '{1}' ".format(filters.get("from_date"), filters.get("to_date"))
+        
+        if filters.get("options") == "With Tracking":
+            conditions += " AND `tabSales Invoice`.`tracking_number` IS NOT NULL AND `tabSales Invoice`.`tracking_number` != '' "
+        elif filters.get("options") == "Without Tracking":
+            conditions += " AND (`tabSales Invoice`.`tracking_number` IS NULL OR `tabSales Invoice`.`tracking_number` = '') "
+        today = datetime.today().strftime('%Y-%m-%d')
 
+        conditions += " AND `tabSales Invoice`.`docstatus` = 1 AND `tabSales Invoice`.`posting_date` = '{0}' ".format(today)
+
+        return conditions
 
 def execute(filters=None):
     columns, data = [], []
     today = date.today()
-    conditions = "`tabSales Invoice`.docstatus = 1 AND `tabSales Invoice`.posting_date = '{0}'".format(today)
-    query = """SELECT  'Domestic air post (Domestic Parcels)',NULL, NULL, NULL, NULL
+
+    conditions = get_condition(filters)
+    query = """SELECT  'Domestic air post (Domestic Parcels)',NULL, NULL, NULL, NULL,NULL, NULL
 
     UNION ALL
     SELECT *
     FROM
     (
         SELECT
+            `tabSales Invoice`.`customer_name` AS `customer_name`,
+           
             `tabSales Invoice`.`address_display` AS `address_display`,
             `tabSales Invoice`.`posting_date` AS `posting_date`,
             `tabSales Invoice`.`tracking_number` AS `tracking_number`,
             `tabSales Invoice`.`total_shipment_weight` AS `total_shipment_weight`,
             Null AS `rs`
         FROM `tabSales Invoice`
-        WHERE ({0}) AND (`sales_channel` = 'B2C' AND `type` = 'Domestic')
-        AND `tabSales Invoice`.`tracking_number` IS NOT NULL AND `tabSales Invoice`.`tracking_number` != ''
+        WHERE {0}
+        AND `tabSales Invoice`.`sales_channel` = 'B2C' AND `tabSales Invoice`.`type` = 'Domestic'
         ORDER BY `posting_date` ASC
         LIMIT 100 OFFSET 0
     ) AS a
 
     UNION ALL
 
-    SELECT  'Registered air parcel (INTERNATIONAL small parcels)',NULL, NULL, NULL, NULL
+    SELECT  'Registered air parcel (INTERNATIONAL small parcels)',NULL, NULL, NULL, NULL,NULL, NULL
 
     UNION ALL
 
@@ -39,21 +55,23 @@ def execute(filters=None):
     FROM
     (
         SELECT
+           `tabSales Invoice`.`customer_name` AS `customer_name`,
+          
             `tabSales Invoice`.`address_display` AS `address_display`,
             `tabSales Invoice`.`posting_date` AS `posting_date`,
             `tabSales Invoice`.`tracking_number` AS `tracking_number`,
             `tabSales Invoice`.`total_shipment_weight` AS `total_shipment_weight`,
             Null AS `rs`
         FROM `tabSales Invoice`
-        WHERE ({0}) AND (`sales_channel` = 'B2C' AND `type` = 'International')
-        AND `tabSales Invoice`.`tracking_number` IS NOT NULL AND `tabSales Invoice`.`tracking_number` != ''
+        WHERE {0}
+        AND `tabSales Invoice`.`sales_channel` = 'B2C' AND `tabSales Invoice`.`type` = 'International'
         ORDER BY `posting_date` ASC
         LIMIT 100 OFFSET 0
     ) AS b
 
     UNION ALL
 
-    SELECT 'Registered air parcel (INTERNATIONAL big boxes)',NULL, NULL, NULL, NULL
+    SELECT 'Registered air parcel (INTERNATIONAL big boxes)',NULL, NULL, NULL, NULL,NULL, NULL
 
     UNION ALL
 
@@ -61,14 +79,15 @@ def execute(filters=None):
     FROM
     (
         SELECT
+           `tabSales Invoice`.`customer_name` AS `customer_name`,
+           
             `tabSales Invoice`.`address_display` AS `address_display`,
             `tabSales Invoice`.`posting_date` AS `posting_date`,
             `tabSales Invoice`.`tracking_number` AS `tracking_number`,
             `tabSales Invoice`.`total_shipment_weight` AS `total_shipment_weight`,
             Null AS `rs`
         FROM `tabSales Invoice`
-        WHERE ({0}) AND (`sales_channel` = 'Retailers' AND `type` = 'International')
-        AND `tabSales Invoice`.`tracking_number` IS NOT NULL AND `tabSales Invoice`.`tracking_number` != ''
+        WHERE ({0}) AND `tabSales Invoice`.`sales_channel` = 'Retailers' AND `tabSales Invoice`.`type` = 'International'
         ORDER BY `posting_date` ASC
         LIMIT 100 OFFSET 0
     ) AS c""".format(conditions)
@@ -100,6 +119,13 @@ def execute(filters=None):
         return [], []
 
     columns = [
+         {
+         "lable":"Customer Name",
+            "fieldname":"customer_name",
+            "fieldtype":"Data",
+            "width":150
+         },
+        
               {
             "label": "Address",
             "fieldname": "address_display",
@@ -135,9 +161,4 @@ def execute(filters=None):
 
     return columns, data_sql
 
-def get_condition(filters):
-    condition = ""
-    if filters.get("from_date") and filters.get("to_date"):
-        condition = "`tabSales Invoice`.`posting_date` BETWEEN '{0}' AND '{1}'".format(filters.get("from_date"), filters.get("to_date"))
 
-    return condition

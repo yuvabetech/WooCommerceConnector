@@ -114,7 +114,7 @@ def put_request(path, data,store_name):
         #frappe.log_error("{0} data: {1}".format(path, data))
         r = wcapi.put(path, data)
         
-        #r.raise_for_status()
+        r.raise_for_status()
         # manually raise for status to get more info from error (message details)
         if r.status_code != requests.codes.ok:
             make_woocommerce_log(title="WooCommerce put error {0}".format(r.status_code), 

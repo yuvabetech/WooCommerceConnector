@@ -14,7 +14,9 @@ import json
 
 woocommerce_variants_attr_list = ["option1", "option2", "option3"]
 
-def sync_products(store_name,price_list, warehouse, sync_from_woocommerce=False):
+
+
+def sync_products(store_name,price_list, warehouse, sync_from_woocommerce=True):
     print("sync_products",store_name,price_list)
     woocommerce_settings = frappe.get_doc("WooCommerce Config", "WooCommerce Config")
     woocommerce_item_list = []
@@ -29,7 +31,8 @@ def sync_products(store_name,price_list, warehouse, sync_from_woocommerce=False)
 def sync_woocommerce_items(warehouse, woocommerce_item_list,store_name):
     for woocommerce_item in get_woocommerce_items(store_name):
         try:
-            make_item(warehouse, woocommerce_item, woocommerce_item_list)
+            make_item(warehouse, woocommerce_item, woocommerce_item_list,store_name)
+            make_woocommerce_log(title="Sync Item", status="Success", method="sync_woocommerce_items", message="Synced {0}".format(woocommerce_item.get("name")))
 
         except woocommerceError as e:
             make_woocommerce_log(title="{0}".format(e), status="Error", method="sync_woocommerce_items", message=frappe.get_traceback(),
@@ -42,11 +45,11 @@ def sync_woocommerce_items(warehouse, woocommerce_item_list,store_name):
                 make_woocommerce_log(title="{0}".format(e), status="Error", method="sync_woocommerce_items", message=frappe.get_traceback(),
                     request_data=woocommerce_item, exception=True)
 
-def make_item(warehouse, woocommerce_item, woocommerce_item_list):
+def make_item(warehouse, woocommerce_item, woocommerce_item_list,store_name):
     
     if has_variants(woocommerce_item):
         #replace woocommerce variants id array with actual variant info
-        woocommerce_item['variants'] = get_woocommerce_item_variants(woocommerce_item.get("id"))
+        woocommerce_item['variants'] = get_woocommerce_item_variants(woocommerce_item.get("id"),store_name)
         
         attributes = create_attribute(woocommerce_item)
         create_item(woocommerce_item, warehouse, 1, attributes=attributes, woocommerce_item_list=woocommerce_item_list)
