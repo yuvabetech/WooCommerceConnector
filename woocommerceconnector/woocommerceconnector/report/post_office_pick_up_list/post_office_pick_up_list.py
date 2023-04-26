@@ -24,7 +24,7 @@ def execute(filters=None):
     today = date.today()
 
     conditions = get_condition(filters)
-    query = """SELECT  'Domestic air post (Domestic Parcels)',NULL, NULL, NULL, NULL,NULL, NULL
+    query = """SELECT  'Domestic air post (Domestic Parcels)',NULL, NULL, NULL, NULL,NULL
 
     UNION ALL
     SELECT *
@@ -47,7 +47,7 @@ def execute(filters=None):
 
     UNION ALL
 
-    SELECT  'Registered air parcel (INTERNATIONAL small parcels)',NULL, NULL, NULL, NULL,NULL, NULL
+    SELECT  'Registered air parcel (INTERNATIONAL small parcels)',NULL, NULL, NULL, NULL,NULL
 
     UNION ALL
 
@@ -71,7 +71,7 @@ def execute(filters=None):
 
     UNION ALL
 
-    SELECT 'Registered air parcel (INTERNATIONAL big boxes)',NULL, NULL, NULL, NULL,NULL, NULL
+    SELECT 'Registered air parcel (INTERNATIONAL big boxes)',NULL, NULL, NULL, NULL,NULL
 
     UNION ALL
 
