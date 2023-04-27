@@ -339,13 +339,19 @@ def get_customer_address_from_order(type, woocommerce_order, customer):
     return address_name
 
 def create_sales_invoice(woocommerce_order, woocommerce_settings, so):
+    o_country = get_country_name(woocommerce_order.get("billing").get("country"))
+    if o_country == "India":
+        o_type = "Domestic"
+    else:
+        o_type = "International"
+
     if not frappe.db.get_value("Sales Invoice", {"woocommerce_order_id": woocommerce_order.get("id")}, "name")\
         and so.docstatus==1 and not so.per_billed:
         si = make_sales_invoice(so.name)
         si.woocommerce_order_id = woocommerce_order.get("id")
         si.naming_series = woocommerce_settings.sales_invoice_series or "SI-woocommerce-"
         si.selling_price_list ="Woocommerce India (WC)"
-        si.type="Domestic"
+        si.type=o_type
         si.flags.ignore_mandatory = True
         set_cost_center(si.items, woocommerce_settings.cost_center)
         si.submit()
