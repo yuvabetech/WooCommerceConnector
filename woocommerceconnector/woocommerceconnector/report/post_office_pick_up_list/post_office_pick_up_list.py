@@ -87,7 +87,6 @@ def execute(filters=None):
     (
         SELECT
            `tabSales Invoice`.`customer_name` AS `customer_name`,
-           
             `tabSales Invoice`.`address_display` AS `address_display`,
             `tabSales Invoice`.`posting_date` AS `posting_date`,
             `tabSales Invoice`.`tracking_number` AS `tracking_number`,
@@ -126,12 +125,12 @@ def execute(filters=None):
         return [], []
 
     columns = [
-         {
-         "lable":"Customer Name",
-            "fieldname":"customer_name",
-            "fieldtype":"Data",
-            "width":150
-         },
+        {
+            "label": "Customer Name",
+            "fieldname": "customer_name",
+            "fieldtype": "Data",
+            
+        },
         
               {
             "label": "Address",
