@@ -5,19 +5,26 @@ import frappe
 from datetime import date,datetime
 
 def get_condition(filters):
-        conditions = ""
-        if filters.get("from_date") and filters.get("to_date"):
-            conditions += " `tabSales Invoice`.`posting_date` BETWEEN '{0}' AND '{1}' ".format(filters.get("from_date"), filters.get("to_date"))
-        
-        if filters.get("options") == "With Tracking":
-            conditions += " AND `tabSales Invoice`.`tracking_number` IS NOT NULL AND `tabSales Invoice`.`tracking_number` != '' "
-        elif filters.get("options") == "Without Tracking":
-            conditions += " AND (`tabSales Invoice`.`tracking_number` IS NULL OR `tabSales Invoice`.`tracking_number` = '') "
-        today = datetime.today().strftime('%Y-%m-%d')
+    print(filters)
+    conditions = ""
+    
+    if filters.get("from_date") and filters.get("to_date"):
+        conditions += " `tabSales Invoice`.`posting_date` BETWEEN '{0}' AND '{1}' ".format(filters.get("from_date"), filters.get("to_date"))
 
-        conditions += " AND `tabSales Invoice`.`docstatus` = 1 AND `tabSales Invoice`.`posting_date` = '{0}' ".format(today)
+    if filters.get("options") == "With Tracking":
+        conditions += " AND `tabSales Invoice`.`tracking_number` IS NOT NULL AND `tabSales Invoice`.`tracking_number` != '' "
+    elif filters.get("options") == "Without Tracking":
+        conditions += " AND (`tabSales Invoice`.`tracking_number` IS NULL OR `tabSales Invoice`.`tracking_number` = '') "
 
-        return conditions
+    today = datetime.today().strftime('%Y-%m-%d')
+
+    if conditions:
+        conditions += " AND "
+    conditions += "`tabSales Invoice`.`docstatus` = 1 AND `tabSales Invoice`.`posting_date` = '{0}' ".format(today)
+
+    return conditions
+    # print(conditions)
+
 
 def execute(filters=None):
     columns, data = [], []
@@ -40,7 +47,7 @@ def execute(filters=None):
             Null AS `rs`
         FROM `tabSales Invoice`
         WHERE {0}
-        AND `tabSales Invoice`.`sales_channel` = 'B2C' AND `tabSales Invoice`.`type` = 'Domestic'
+        AND `tabSales Invoice`.`sales_channel` IN ('B2C', 'Retailers') AND `tabSales Invoice`.`type` = 'Domestic'
         ORDER BY `posting_date` ASC
         LIMIT 100 OFFSET 0
     ) AS a
